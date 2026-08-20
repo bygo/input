@@ -1,0 +1,8 @@
+node_modules
+dist
+src-tauri/target
+src-tauri/gen
+.idea
+.aipeek
+*.log
+.DS_Store
