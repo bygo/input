@@ -15,7 +15,9 @@
         "label": "main",
         "title": "input",
         "width": 440,
-        "height": 56,
+        "height": 40,
+        "x": -16384,
+        "y": -16384,
         "center": false,
         "decorations": false,
         "transparent": true,
@@ -23,7 +25,9 @@
         "alwaysOnTop": true,
         "skipTaskbar": true,
         "visible": false,
-        "resizable": false
+        "resizable": false,
+        "focus": false,
+        "visibleOnAllWorkspaces": true
       }
     ],
     "macOSPrivateApi": true,
