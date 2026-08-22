@@ -7,9 +7,14 @@ import {
   endShortcutCapture,
   setNativeLanguage,
   setShortcut,
-  setTargetLanguage,
 } from './api/settings'
-import { composeShortcutAtom, languageAtom, nativeLanguageAtom, selectShortcutAtom, viewAtom } from './atoms'
+import {
+  composeShortcutAtom,
+  nativeLanguageAtom,
+  ocrShortcutAtom,
+  selectShortcutAtom,
+  viewAtom,
+} from './atoms'
 import { LANGUAGES } from './languages'
 import { formatShortcut, shortcutFromEvent } from './shortcut'
 import { Button } from '@/components/ui/button'
@@ -60,6 +65,8 @@ const empty: LocalStatus = {
   installed: false,
   running: false,
   hasModel: false,
+  hasLlm: false,
+  hasMt: false,
   busy: false,
   message: '',
   percent: 0,
@@ -167,10 +174,10 @@ function ShortcutBind({
 
 export function Settings() {
   const [, setView] = useAtom(viewAtom)
-  const [language, setLanguage] = useAtom(languageAtom)
   const [native, setNative] = useAtom(nativeLanguageAtom)
   const [composeShortcut, setComposeShortcut] = useAtom(composeShortcutAtom)
   const [selectShortcut, setSelectShortcut] = useAtom(selectShortcutAtom)
+  const [ocrShortcut, setOcrShortcut] = useAtom(ocrShortcutAtom)
   const [st, setSt] = useState<LocalStatus>(empty)
   const [error, setError] = useState('')
 
@@ -191,6 +198,8 @@ export function Settings() {
         percent: e.payload.percent,
         enabled: e.payload.stage === 'done' ? true : s.enabled,
         hasModel: e.payload.stage === 'done' ? true : s.hasModel,
+        hasLlm: e.payload.stage === 'done' ? true : s.hasLlm,
+        hasMt: e.payload.stage === 'done' ? true : s.hasMt,
         running: e.payload.stage === 'done' ? true : s.running,
         installed: e.payload.stage === 'done' ? true : s.installed,
       }))
@@ -202,6 +211,11 @@ export function Settings() {
   }, [])
 
   const ready = st.enabled && st.hasModel && st.running
+  const partial =
+    st.enabled &&
+    st.running &&
+    !st.hasModel &&
+    (st.hasLlm || st.hasMt)
 
   return (
     <div className="flex flex-col gap-4 p-4">
@@ -213,31 +227,16 @@ export function Settings() {
       </div>
 
       <div className="flex flex-col gap-2">
-        <Tip label="我现在的语言" text={`选中文字后按 ${formatShortcut(selectShortcut)}，译成这种语言。`} />
+        <Tip
+          label="我现在的语言"
+          text={`学习目标固定为英语。选中文字按 ${formatShortcut(selectShortcut)}：母语↔英语互译；按 ${formatShortcut(composeShortcut)} 输入：英语则纠错润色，否则译成英语。`}
+        />
         <LangGrid
           value={native}
           onPick={async (lang) => {
             setNative(lang)
             try {
               await setNativeLanguage(lang)
-            } catch (e) {
-              setError(String(e))
-            }
-          }}
-        />
-      </div>
-
-      <div className="flex flex-col gap-2">
-        <Tip
-          label="学习的语言"
-          text={`按 ${formatShortcut(composeShortcut)} 输入时：已是该语言则纠错润色，否则翻译成该语言。`}
-        />
-        <LangGrid
-          value={language}
-          onPick={async (lang) => {
-            setLanguage(lang)
-            try {
-              await setTargetLanguage(lang)
             } catch (e) {
               setError(String(e))
             }
@@ -265,17 +264,33 @@ export function Settings() {
             setSelectShortcut(s.selectShortcut)
           }}
         />
+        <ShortcutBind
+          label="截屏取词"
+          value={ocrShortcut}
+          onError={setError}
+          onBound={async (shortcut) => {
+            const s = await setShortcut('ocr', shortcut)
+            setOcrShortcut(s.ocrShortcut)
+          }}
+        />
+        <p className="text-xs text-muted-foreground">
+          截屏取词：先定格当前屏幕，再框选文字；识别后自动填入并模型翻译（需「屏幕录制」权限）
+        </p>
       </div>
 
       <div className="flex flex-col gap-1.5">
-        <span className="text-sm">本地模型增强</span>
+        <span className="text-sm">本地模型</span>
         <p className="text-xs text-muted-foreground">
-          自动安装本机模型，随应用启动。安装约 2GB，之后改写可走本地。
+          翻译 TranslateGemma 4B + 改写 Qwen3 4B Instruct。安装约 5–6GB；启动后双模型常驻约 6–7GB，推荐 16GB 内存。
         </p>
       </div>
 
       <div className="text-xs text-muted-foreground">
-        {ready ? '运行中 · Qwen2.5 3B' : st.message || (st.enabled ? '启动中…' : '未安装')}
+        {ready
+          ? '运行中 · 翻译 TranslateGemma 4B · 改写 Qwen3 4B Instruct'
+          : partial
+            ? `部分就绪 · 翻译 ${st.hasMt ? '✓' : '…'} · 改写 ${st.hasLlm ? '✓' : '…'}`
+            : st.message || (st.enabled ? '启动中…' : '未安装')}
       </div>
 
       {st.busy && (
@@ -302,10 +317,10 @@ export function Settings() {
               }
             }}
           >
-            {st.busy ? '安装中…' : '安装并启用'}
+            {st.busy ? '安装中…' : partial ? '补全模型' : '安装并启用'}
           </Button>
         )}
-        {st.hasModel && (
+        {(st.hasModel || st.hasLlm || st.hasMt) && (
           <Button
             variant="outline"
             className={ready ? 'flex-1' : ''}

@@ -260,13 +260,35 @@ mod ax {
             out
         }
 
-        pub fn insert_text(&self, text: &str) -> bool {
+        fn in_web(&self) -> bool {
+            if self.role().as_deref() == Some("AXWebArea") {
+                return true;
+            }
+            let mut cur = self.parent();
+            for _ in 0..16 {
+                let Some(el) = cur else { break };
+                if el.role().as_deref() == Some("AXWebArea") {
+                    return true;
+                }
+                cur = el.parent();
+            }
+            false
+        }
+
+        pub fn insert_text(&self, text: &str, replace: bool) -> bool {
+            if self.in_web() && !replace {
+                return false;
+            }
             let before = self.value();
             let range = self.selected_range();
             if self.insert(text) {
+                if replace || self.in_web() {
+                    return true;
+                }
                 if let Some(after) = self.value() {
                     if let (Some(before), Some(range)) = (before.as_deref(), range) {
-                        if after == Self::expected_after(before, range, text) || after.contains(text)
+                        if after == Self::expected_after(before, range, text)
+                            || after.contains(text)
                         {
                             return true;
                         }
@@ -274,6 +296,9 @@ mod ax {
                         return true;
                     }
                 }
+            }
+            if self.in_web() {
+                return false;
             }
             let Some(before) = self.value().or(before) else {
                 return false;
@@ -333,15 +358,6 @@ mod ax {
                 cur = el.parent();
             }
             self.find_selected_in_descendants(40)
-        }
-
-        pub fn confirmed_empty_selection(&self) -> bool {
-            let role = self.role().unwrap_or_default();
-            let is_text = matches!(
-                role.as_str(),
-                "AXTextField" | "AXTextArea" | "AXComboBox" | "AXSearchField" | "AXEditableText"
-            );
-            is_text && matches!(self.selected_range(), Some(r) if r.length == 0)
         }
 
         fn parent(&self) -> Option<Self> {
@@ -721,6 +737,14 @@ fn send_cmd_key(key: u16, press_command: bool, pid: Option<Handle>) -> Result<()
         .or_else(|_| CGEventSource::new(CGEventSourceStateID::HIDSystemState))
         .map_err(|()| "无法创建按键事件".to_string())?;
     let flags = CGEventFlags::CGEventFlagCommand | CGEventFlags::from_bits_retain(0x8);
+    let option_held = hid_key_down(KeyCode::OPTION) || hid_key_down(KeyCode::RIGHT_OPTION);
+    if option_held {
+        let opt_up = CGEvent::new_keyboard_event(source.clone(), KeyCode::OPTION, false)
+            .map_err(|()| "无法创建按键事件".to_string())?;
+        opt_up.set_flags(CGEventFlags::from_bits_retain(0x8));
+        post_key(&opt_up, pid);
+        thread::sleep(Duration::from_millis(8));
+    }
     let command_held = hid_key_down(KeyCode::COMMAND) || hid_key_down(KeyCode::RIGHT_COMMAND);
     let need_command = press_command && !command_held;
     if need_command {
@@ -741,10 +765,17 @@ fn send_cmd_key(key: u16, press_command: bool, pid: Option<Handle>) -> Result<()
     post_key(&up, pid);
     if need_command {
         thread::sleep(Duration::from_millis(16));
-        let cmd_up = CGEvent::new_keyboard_event(source, KeyCode::COMMAND, false)
+        let cmd_up = CGEvent::new_keyboard_event(source.clone(), KeyCode::COMMAND, false)
             .map_err(|()| "无法创建按键事件".to_string())?;
         cmd_up.set_flags(CGEventFlags::from_bits_retain(0x8));
         post_key(&cmd_up, pid);
+    }
+    if option_held {
+        let opt_down = CGEvent::new_keyboard_event(source, KeyCode::OPTION, true)
+            .map_err(|()| "无法创建按键事件".to_string())?;
+        opt_down
+            .set_flags(CGEventFlags::CGEventFlagAlternate | CGEventFlags::from_bits_retain(0x8));
+        post_key(&opt_down, pid);
     }
     Ok(())
 }
@@ -906,13 +937,9 @@ pub fn remember(app: &AppHandle, capture_selection: bool) {
     let ax = ax::Elem::focused();
     #[cfg(target_os = "macos")]
     let selected = if capture_selection {
-        let from_ax = ax.as_ref().and_then(|e| e.capture_selected());
-        let empty = ax.as_ref().is_some_and(|e| e.confirmed_empty_selection());
-        if from_ax.is_some() || empty {
-            from_ax
-        } else {
-            copy_selected_via_clipboard()
-        }
+        ax.as_ref()
+            .and_then(|e| e.capture_selected())
+            .or_else(copy_selected_via_clipboard)
     } else {
         None
     };
@@ -956,7 +983,7 @@ pub async fn paste_back(app: AppHandle, text: String) -> Result<(), String> {
     let saved = app
         .try_state::<PasteTarget>()
         .and_then(|slot| slot.0.lock().unwrap().take());
-    crate::dismiss_overlay(&app, false);
+    crate::overlay::dismiss_overlay(&app, false);
     tokio::time::sleep(Duration::from_millis(80)).await;
     if let Some(handle) = saved.as_ref().and_then(|s| s.handle) {
         os::activate(handle);
@@ -970,7 +997,11 @@ pub async fn paste_back(app: AppHandle, text: String) -> Result<(), String> {
             .or_else(|| saved.as_ref().and_then(|s| s.ax.as_ref()));
         if let Some(el) = el {
             el.focus();
-            if el.insert_text(&text) {
+            let replace = saved
+                .as_ref()
+                .and_then(|s| s.selected.as_ref())
+                .is_some_and(|t| !t.trim().is_empty());
+            if el.insert_text(&text, replace) {
                 return Ok(());
             }
         }
@@ -983,7 +1014,7 @@ pub async fn paste_back(app: AppHandle, text: String) -> Result<(), String> {
         if let Some(slot) = app.try_state::<PasteTarget>() {
             *slot.0.lock().unwrap() = saved;
         }
-        crate::reveal_overlay(&app);
+        crate::overlay::reveal_overlay(&app);
         return Err(e);
     }
     tokio::time::sleep(Duration::from_millis(80)).await;

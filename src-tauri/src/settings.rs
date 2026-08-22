@@ -13,11 +13,15 @@ fn default_native_language() -> String {
 }
 
 pub fn default_compose_shortcut() -> String {
-    "Alt+A".into()
+    "CommandOrControl+G".into()
 }
 
 pub fn default_select_shortcut() -> String {
-    "Alt+D".into()
+    "CommandOrControl+Shift+G".into()
+}
+
+pub fn default_ocr_shortcut() -> String {
+    "CommandOrControl+Shift+O".into()
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -33,6 +37,8 @@ pub struct Settings {
     pub compose_shortcut: String,
     #[serde(default = "default_select_shortcut")]
     pub select_shortcut: String,
+    #[serde(default = "default_ocr_shortcut")]
+    pub ocr_shortcut: String,
 }
 
 impl Default for Settings {
@@ -43,6 +49,7 @@ impl Default for Settings {
             native_language: default_native_language(),
             compose_shortcut: default_compose_shortcut(),
             select_shortcut: default_select_shortcut(),
+            ocr_shortcut: default_ocr_shortcut(),
         }
     }
 }
@@ -135,40 +142,48 @@ pub fn write(settings: &Settings) -> Result<(), String> {
 #[tauri::command]
 pub fn load_settings() -> Settings {
     let mut s = read();
-    if s.target_language.trim().is_empty() {
+    let mut dirty = false;
+    // 学习目标暂时固定英语（设置页已去掉目标语选项）。
+    if s.target_language != default_language() {
         s.target_language = default_language();
+        dirty = true;
     }
     if s.native_language.trim().is_empty() {
         s.native_language = default_native_language();
+        dirty = true;
     }
     if s.compose_shortcut.trim().is_empty() {
         s.compose_shortcut = default_compose_shortcut();
+        dirty = true;
     }
     if s.select_shortcut.trim().is_empty() {
         s.select_shortcut = default_select_shortcut();
+        dirty = true;
+    }
+    if s.ocr_shortcut.trim().is_empty() {
+        s.ocr_shortcut = default_ocr_shortcut();
+        dirty = true;
     }
     if is_legacy_default_pair(&s.compose_shortcut, &s.select_shortcut) {
         s.compose_shortcut = default_compose_shortcut();
         s.select_shortcut = default_select_shortcut();
+        dirty = true;
+    }
+    if dirty {
         let _ = write(&s);
     }
     s
 }
 
 fn is_legacy_default_pair(compose: &str, select: &str) -> bool {
-    let compose_old = same_shortcut(compose, "CommandOrControl+G");
-    let select_old = same_shortcut(select, "CommandOrControl+Shift+G");
-    compose_old && select_old
+    // migrate off Option defaults that need Input Monitoring / collide with Bob
+    same_shortcut(compose, "Alt+A") && same_shortcut(select, "Alt+D")
 }
 
 #[tauri::command]
-pub fn set_target_language(language: String) -> Result<Settings, String> {
-    let lang = language.trim();
-    if lang.is_empty() {
-        return Err("请选择目标语言".into());
-    }
+pub fn set_target_language(_language: String) -> Result<Settings, String> {
     let mut s = read();
-    s.target_language = lang.to_string();
+    s.target_language = default_language();
     write(&s)?;
     Ok(s)
 }
@@ -190,10 +205,15 @@ mod tests {
     use super::*;
 
     #[test]
-    fn normalizes_option_defaults() {
+    fn normalizes_command_or_control_defaults() {
+        let got = normalize_shortcut("CommandOrControl+G").unwrap();
+        assert!(got == "Command+G" || got == "Control+G", "{got}");
+        let got = normalize_shortcut("CommandOrControl+Shift+G").unwrap();
+        assert!(
+            got == "Command+Shift+G" || got == "Control+Shift+G",
+            "{got}"
+        );
         assert_eq!(normalize_shortcut("Alt+A").unwrap(), "Alt+A");
-        assert_eq!(normalize_shortcut("Option+D").unwrap(), "Alt+D");
-        assert_eq!(normalize_shortcut("Alt+Shift+D").unwrap(), "Alt+Shift+D");
     }
 
     #[test]
