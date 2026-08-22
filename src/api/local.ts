@@ -5,6 +5,8 @@ export type LocalStatus = {
   installed: boolean
   running: boolean
   hasModel: boolean
+  hasLlm?: boolean
+  hasMt?: boolean
   busy: boolean
   message: string
   percent: number

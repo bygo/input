@@ -32,12 +32,20 @@
     ],
     "macOSPrivateApi": true,
     "security": {
-      "csp": null
+      "csp": null,
+      "assetProtocol": {
+        "enable": true,
+        "scope": ["$HOME/input-workspace/tmp/**"]
+      }
     }
   },
   "bundle": {
     "active": true,
     "targets": "all",
-    "icon": ["icons/icon.png"]
+    "icon": ["icons/icon.png"],
+    "resources": ["resources/ocr.swift", "resources/ecdict.db"],
+    "macOS": {
+      "infoPlist": "Info.plist"
+    }
   }
 }

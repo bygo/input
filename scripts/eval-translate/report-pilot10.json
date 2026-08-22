@@ -1,0 +1,1417 @@
+{
+  "summary": {
+    "total": 120,
+    "pass": 111,
+    "fail": 9,
+    "pass_rate": 0.925,
+    "by_lang": {
+      "英语": {
+        "n": 10,
+        "pass": 10,
+        "fail": 0,
+        "pass_rate": 1.0,
+        "issue_counts": {},
+        "examples": []
+      },
+      "中文": {
+        "n": 10,
+        "pass": 10,
+        "fail": 0,
+        "pass_rate": 1.0,
+        "issue_counts": {},
+        "examples": []
+      },
+      "日语": {
+        "n": 10,
+        "pass": 9,
+        "fail": 1,
+        "pass_rate": 0.9,
+        "issue_counts": {
+          "latin_leftover": 1
+        },
+        "examples": [
+          {
+            "idx": 4,
+            "source": "Wage growth has moderated, yet many households still feel squeezed by rent and groceries.",
+            "translation": "賃料と Groceries に対する支出が households に圧迫感を残しているにもかかわらず、賃金の伸びは鈍化している。",
+            "issues": [
+              "latin_leftover:Groceries,households"
+            ]
+          }
+        ]
+      },
+      "韩语": {
+        "n": 10,
+        "pass": 8,
+        "fail": 2,
+        "pass_rate": 0.8,
+        "issue_counts": {
+          "latin_leftover": 2
+        },
+        "examples": [
+          {
+            "idx": 2,
+            "source": "The Federal Reserve has spent the past two years trying to cool inflation without triggering a deep recession.",
+            "translation": "연방準備_system이 지난 두 해 동안 인플레이션을 둔화시키려고 했지만 심각한 Recession을 일으키지 않도록 하였습니다.",
+            "issues": [
+              "latin_leftover:system,Recession"
+            ]
+          },
+          {
+            "idx": 3,
+            "source": "Core inflation has slowed from its peak, but service prices remain sticky.",
+            "translation": "_Core inflation은 최고점에서 느려졌지만, 서비스 가격은 여전히 끈적임이 있다._",
+            "issues": [
+              "latin_leftover:Core,inflation"
+            ]
+          }
+        ]
+      },
+      "法语": {
+        "n": 10,
+        "pass": 10,
+        "fail": 0,
+        "pass_rate": 1.0,
+        "issue_counts": {},
+        "examples": []
+      },
+      "德语": {
+        "n": 10,
+        "pass": 10,
+        "fail": 0,
+        "pass_rate": 1.0,
+        "issue_counts": {},
+        "examples": []
+      },
+      "西班牙语": {
+        "n": 10,
+        "pass": 10,
+        "fail": 0,
+        "pass_rate": 1.0,
+        "issue_counts": {},
+        "examples": []
+      },
+      "葡萄牙语": {
+        "n": 10,
+        "pass": 10,
+        "fail": 0,
+        "pass_rate": 1.0,
+        "issue_counts": {},
+        "examples": []
+      },
+      "意大利语": {
+        "n": 10,
+        "pass": 10,
+        "fail": 0,
+        "pass_rate": 1.0,
+        "issue_counts": {},
+        "examples": []
+      },
+      "俄语": {
+        "n": 10,
+        "pass": 9,
+        "fail": 1,
+        "pass_rate": 0.9,
+        "issue_counts": {
+          "latin_leftover": 1
+        },
+        "examples": [
+          {
+            "idx": 1,
+            "source": "Consumer spending still accounts for roughly two thirds of U.S. economic activity.",
+            "translation": "Потребительские расходы продолжают составлять примерно две thirds экономической активности в США.",
+            "issues": [
+              "latin_leftover:thirds"
+            ]
+          }
+        ]
+      },
+      "阿拉伯语": {
+        "n": 10,
+        "pass": 6,
+        "fail": 4,
+        "pass_rate": 0.6,
+        "issue_counts": {
+          "latin_leftover": 3,
+          "low_arabic": 1
+        },
+        "examples": [
+          {
+            "idx": 2,
+            "source": "The Federal Reserve has spent the past two years trying to cool inflation without triggering a deep recession.",
+            "translation": "central bank قد إنفجروا في الأعوام ال dosةيين الماضية لمحاولة تبريد التضخم دون إشعال Recession عميقة.",
+            "issues": [
+              "latin_leftover:central,bank,Recession"
+            ]
+          },
+          {
+            "idx": 4,
+            "source": "Wage growth has moderated, yet many households still feel squeezed by rent and groceries.",
+            "translation": "توسع أ wage قد تراجع، لكن العديد من الأسر ما يزال يشعر بالضغط من فواتير الإيجار وفواتير المواد الغذائية.",
+            "issues": [
+              "latin_leftover:wage"
+            ]
+          },
+          {
+            "idx": 6,
+            "source": "Job openings have declined, reducing the intense competition for workers seen earlier in the cycle.",
+            "translation": "ارتفعت فرص العمل، مما降低了周期早期看到的对工人的激烈竞争。",
+            "issues": [
+              "low_arabic"
+            ]
+          },
+          {
+            "idx": 8,
+            "source": "Productivity gains linked to artificial intelligence are beginning to show up in some corporate earnings.",
+            "translation": "gains مرتبطsWith التكنولوجيا الصناعية الذكية بدأت تظهر في أرباح بعض الشركات العاملة.",
+            "issues": [
+              "latin_leftover:gains,sWith"
+            ]
+          }
+        ]
+      },
+      "越南语": {
+        "n": 10,
+        "pass": 9,
+        "fail": 1,
+        "pass_rate": 0.9,
+        "issue_counts": {
+          "low_latin": 1,
+          "han_leftover": 1
+        },
+        "examples": [
+          {
+            "idx": 7,
+            "source": "Layoffs have risen in technology and finance, but overall payroll growth has stayed positive.",
+            "translation": "Giảm员工人数在科技和金融行业增加，但总体薪酬增长保持正向。",
+            "issues": [
+              "low_latin",
+              "han_leftover"
+            ]
+          }
+        ]
+      }
+    }
+  },
+  "rows": [
+    {
+      "idx": 0,
+      "lang": "中文",
+      "source": "The United States economy remains the largest in the world by nominal GDP.",
+      "raw": "{ \"sentences\" : [ \"美国经济以名义国内生产总值计算仍然是世界上最大的经济体。\" ]}",
+      "translation": "美国经济以名义国内生产总值计算仍然是世界上最大的经济体。",
+      "issues": [],
+      "ms": 1988,
+      "error": ""
+    },
+    {
+      "idx": 1,
+      "lang": "中文",
+      "source": "Consumer spending still accounts for roughly two thirds of U.S. economic activity.",
+      "raw": "{ \"sentences\" : [ \"美国经济活动中有大约三分之二都来自于消费者支出。\" ]}",
+      "translation": "美国经济活动中有大约三分之二都来自于消费者支出。",
+      "issues": [],
+      "ms": 941,
+      "error": ""
+    },
+    {
+      "idx": 2,
+      "lang": "中文",
+      "source": "The Federal Reserve has spent the past two years trying to cool inflation without triggering a deep recession.",
+      "raw": "{ \"sentences\" : [ \"美联储在过去两年里一直在努力抑制通胀，同时避免引发深度衰退。\" ]}",
+      "translation": "美联储在过去两年里一直在努力抑制通胀，同时避免引发深度衰退。",
+      "issues": [],
+      "ms": 1049,
+      "error": ""
+    },
+    {
+      "idx": 3,
+      "lang": "中文",
+      "source": "Core inflation has slowed from its peak, but service prices remain sticky.",
+      "raw": "{ \"sentences\" : [ \"核心通胀已经从峰值回落，但服务价格依然保持粘性。\" ]}",
+      "translation": "核心通胀已经从峰值回落，但服务价格依然保持粘性。",
+      "issues": [],
+      "ms": 1064,
+      "error": ""
+    },
+    {
+      "idx": 4,
+      "lang": "中文",
+      "source": "Wage growth has moderated, yet many households still feel squeezed by rent and groceries.",
+      "raw": "{\n  \"sentences\": [\"尽管工资增长放缓，但许多家庭仍感房租和食品杂货的压力。\"]\n}",
+      "translation": "尽管工资增长放缓，但许多家庭仍感房租和食品杂货的压力。",
+      "issues": [],
+      "ms": 1008,
+      "error": ""
+    },
+    {
+      "idx": 5,
+      "lang": "中文",
+      "source": "The labor market is less overheated than in 2022, though unemployment remains historically low.",
+      "raw": "{ \"sentences\" : [ \"劳动力市场虽然不及2022年那么火热，但失业率仍维持在历史低位。\" ]}",
+      "translation": "劳动力市场虽然不及2022年那么火热，但失业率仍维持在历史低位。",
+      "issues": [],
+      "ms": 1159,
+      "error": ""
+    },
+    {
+      "idx": 6,
+      "lang": "中文",
+      "source": "Job openings have declined, reducing the intense competition for workers seen earlier in the cycle.",
+      "raw": "{ \"sentences\" : [ \"随着就业机会减少，此前周期中出现的激烈工人竞争现象有所缓解。\" ]}",
+      "translation": "随着就业机会减少，此前周期中出现的激烈工人竞争现象有所缓解。",
+      "issues": [],
+      "ms": 1070,
+      "error": ""
+    },
+    {
+      "idx": 7,
+      "lang": "中文",
+      "source": "Layoffs have risen in technology and finance, but overall payroll growth has stayed positive.",
+      "raw": "{\n  \"sentences\": [\"科技和金融行业裁员增加，但总体就业人数增长仍保持正向。\"]\n}",
+      "translation": "科技和金融行业裁员增加，但总体就业人数增长仍保持正向。",
+      "issues": [],
+      "ms": 1054,
+      "error": ""
+    },
+    {
+      "idx": 8,
+      "lang": "中文",
+      "source": "Productivity gains linked to artificial intelligence are beginning to show up in some corporate earnings.",
+      "raw": "{\n  \"sentences\": [\"企业财报中，人工智能带来的生产力增长开始显现。\"]\n}",
+      "translation": "企业财报中，人工智能带来的生产力增长开始显现。",
+      "issues": [],
+      "ms": 878,
+      "error": ""
+    },
+    {
+      "idx": 9,
+      "lang": "中文",
+      "source": "Business investment in software and data centers has been one of the brighter spots in recent GDP reports.",
+      "raw": "{\"sentences\":[\"软件和数据中心的投资一直是近期GDP报告中的亮点之一。\"]}",
+      "translation": "软件和数据中心的投资一直是近期GDP报告中的亮点之一。",
+      "issues": [],
+      "ms": 882,
+      "error": ""
+    },
+    {
+      "idx": 0,
+      "lang": "俄语",
+      "source": "The United States economy remains the largest in the world by nominal GDP.",
+      "raw": "{\"sentences\":[\"Экономика Соединенных Штатов по-прежнему保持着世界名义GDP最大的经济体。\"]}",
+      "translation": "Экономика Соединенных Штатов по-прежнему保持着世界名义GDP最大的经济体。",
+      "issues": [],
+      "ms": 2030,
+      "error": ""
+    },
+    {
+      "idx": 1,
+      "lang": "俄语",
+      "source": "Consumer spending still accounts for roughly two thirds of U.S. economic activity.",
+      "raw": "{\"sentences\":[\"Потребительские расходы продолжают составлять примерно две thirds экономической активности в США.\"]}",
+      "translation": "Потребительские расходы продолжают составлять примерно две thirds экономической активности в США.",
+      "issues": [
+        "latin_leftover:thirds"
+      ],
+      "ms": 1214,
+      "error": ""
+    },
+    {
+      "idx": 2,
+      "lang": "俄语",
+      "source": "The Federal Reserve has spent the past two years trying to cool inflation without triggering a deep recession.",
+      "raw": "{\"sentences\":[\"Федеральная резервная система провела последние два года, пытаясь охладить инфляцию без спровоцирования глубокой рецессии.\"]}",
+      "translation": "Федеральная резервная система провела последние два года, пытаясь охладить инфляцию без спровоцирования глубокой рецессии.",
+      "issues": [],
+      "ms": 1719,
+      "error": ""
+    },
+    {
+      "idx": 3,
+      "lang": "俄语",
+      "source": "Core inflation has slowed from its peak, but service prices remain sticky.",
+      "raw": "{\"sentences\":[\"Избыточная инфляция замедлилась с пика, но цены на услуги остаются статичными.\"]}",
+      "translation": "Избыточная инфляция замедлилась с пика, но цены на услуги остаются статичными.",
+      "issues": [],
+      "ms": 1391,
+      "error": ""
+    },
+    {
+      "idx": 4,
+      "lang": "俄语",
+      "source": "Wage growth has moderated, yet many households still feel squeezed by rent and groceries.",
+      "raw": "{\"sentences\":[\"Увеличение заработной платы умерло, однако многие семьи по-прежнему чувствуют себя сжатыми по поводу аренды и продуктов питания.\"]}",
+      "translation": "Увеличение заработной платы умерло, однако многие семьи по-прежнему чувствуют себя сжатыми по поводу аренды и продуктов питания.",
+      "issues": [],
+      "ms": 1688,
+      "error": ""
+    },
+    {
+      "idx": 5,
+      "lang": "俄语",
+      "source": "The labor market is less overheated than in 2022, though unemployment remains historically low.",
+      "raw": "{\"sentences\":[\"Маркетинг труда менее перегрет, чем в 2022 году, хотя уровень безработицы остается исторически низким.\"]}",
+      "translation": "Маркетинг труда менее перегрет, чем в 2022 году, хотя уровень безработицы остается исторически низким.",
+      "issues": [],
+      "ms": 1667,
+      "error": ""
+    },
+    {
+      "idx": 6,
+      "lang": "俄语",
+      "source": "Job openings have declined, reducing the intense competition for workers seen earlier in the cycle.",
+      "raw": "{\"sentences\":[\"Зарплатах появились свободные места, что уменьшило интенсивную конкуренцию на рынке труда, которую мы видели ранее в цикле.\"]}",
+      "translation": "Зарплатах появились свободные места, что уменьшило интенсивную конкуренцию на рынке труда, которую мы видели ранее в цикле.",
+      "issues": [],
+      "ms": 1647,
+      "error": ""
+    },
+    {
+      "idx": 7,
+      "lang": "俄语",
+      "source": "Layoffs have risen in technology and finance, but overall payroll growth has stayed positive.",
+      "raw": "{\"sentences\":[\"Увольнения в технологическом и финансовом секторах выросли, но общая рост зарплат остался положительным.\"]}",
+      "translation": "Увольнения в технологическом и финансовом секторах выросли, но общая рост зарплат остался положительным.",
+      "issues": [],
+      "ms": 1571,
+      "error": ""
+    },
+    {
+      "idx": 8,
+      "lang": "俄语",
+      "source": "Productivity gains linked to artificial intelligence are beginning to show up in some corporate earnings.",
+      "raw": "{\"sentences\":[\"Приобретенные благодаря искусственному интеллекту приросты продуктивности начали проявляться в некоторых финансовых отчетах корпоративных предприятий.\"]}",
+      "translation": "Приобретенные благодаря искусственному интеллекту приросты продуктивности начали проявляться в некоторых финансовых отчетах корпоративных предприятий.",
+      "issues": [],
+      "ms": 1694,
+      "error": ""
+    },
+    {
+      "idx": 9,
+      "lang": "俄语",
+      "source": "Business investment in software and data centers has been one of the brighter spots in recent GDP reports.",
+      "raw": "{\"sentences\":[\"Инвестиции в бизнес в программное обеспечение и центры данных стали одним из ярких моментов в недавних отчетах о ВВП.\"]}",
+      "translation": "Инвестиции в бизнес в программное обеспечение и центры данных стали одним из ярких моментов в недавних отчетах о ВВП.",
+      "issues": [],
+      "ms": 1542,
+      "error": ""
+    },
+    {
+      "idx": 0,
+      "lang": "德语",
+      "source": "The United States economy remains the largest in the world by nominal GDP.",
+      "raw": "{\"sentences\":[\"Die US-amerikanische Wirtschaft behält sich nach wie vor die größte Größe im Weltniveau bei, wenn man die Nominal-GDP als Maßstab nimmt.\"]}",
+      "translation": "Die US-amerikanische Wirtschaft behält sich nach wie vor die größte Größe im Weltniveau bei, wenn man die Nominal-GDP als Maßstab nimmt.",
+      "issues": [],
+      "ms": 2155,
+      "error": ""
+    },
+    {
+      "idx": 1,
+      "lang": "德语",
+      "source": "Consumer spending still accounts for roughly two thirds of U.S. economic activity.",
+      "raw": "{\"sentences\":[\"Die Konsumspenden beziehen sich immer noch auf etwa zwei Drittel der US-Wirtschaftsaufwands.\"]}",
+      "translation": "Die Konsumspenden beziehen sich immer noch auf etwa zwei Drittel der US-Wirtschaftsaufwands.",
+      "issues": [],
+      "ms": 1331,
+      "error": ""
+    },
+    {
+      "idx": 2,
+      "lang": "德语",
+      "source": "The Federal Reserve has spent the past two years trying to cool inflation without triggering a deep recession.",
+      "raw": "{\"sentences\":[\"Die Bundesbank hat in den letzten zwei Jahren versucht, Inflation ohne tiefen Wirtschaftskrise zu kühlen.\"]}",
+      "translation": "Die Bundesbank hat in den letzten zwei Jahren versucht, Inflation ohne tiefen Wirtschaftskrise zu kühlen.",
+      "issues": [],
+      "ms": 1432,
+      "error": ""
+    },
+    {
+      "idx": 3,
+      "lang": "德语",
+      "source": "Core inflation has slowed from its peak, but service prices remain sticky.",
+      "raw": "{\"sentences\":[\"Die Kerninflation hat sich von ihrem Höhepunkt zurückgezogen, aber die Dienstleistungspreise bleiben anhaftend.\"]}",
+      "translation": "Die Kerninflation hat sich von ihrem Höhepunkt zurückgezogen, aber die Dienstleistungspreise bleiben anhaftend.",
+      "issues": [],
+      "ms": 1269,
+      "error": ""
+    },
+    {
+      "idx": 4,
+      "lang": "德语",
+      "source": "Wage growth has moderated, yet many households still feel squeezed by rent and groceries.",
+      "raw": "{\"sentences\":[\"Die Wachstumsrate der Löhne hat sich gemäßigter gesteigert, trotzdem fühlen sich viele Haushalte noch unter Druck von Räumen und Lebensmittelzubehör.\"]}",
+      "translation": "Die Wachstumsrate der Löhne hat sich gemäßigter gesteigert, trotzdem fühlen sich viele Haushalte noch unter Druck von Räumen und Lebensmittelzubehör.",
+      "issues": [],
+      "ms": 1766,
+      "error": ""
+    },
+    {
+      "idx": 5,
+      "lang": "德语",
+      "source": "The labor market is less overheated than in 2022, though unemployment remains historically low.",
+      "raw": "{\"sentences\":[\"Der Arbeitsmarkt ist weniger überheizt als im Jahr 2022, obwohl die Arbeitslosigkeit historisch niedrig bleibt.\"]}",
+      "translation": "Der Arbeitsmarkt ist weniger überheizt als im Jahr 2022, obwohl die Arbeitslosigkeit historisch niedrig bleibt.",
+      "issues": [],
+      "ms": 1370,
+      "error": ""
+    },
+    {
+      "idx": 6,
+      "lang": "德语",
+      "source": "Job openings have declined, reducing the intense competition for workers seen earlier in the cycle.",
+      "raw": "{\"sentences\":[\"Die Arbeitslosenplätze haben sich reduziert, was die früheren in der Zyklusperiode bemerkte intensiven Konkurrenz für Arbeitnehmer reduziert hat.\"]}",
+      "translation": "Die Arbeitslosenplätze haben sich reduziert, was die früheren in der Zyklusperiode bemerkte intensiven Konkurrenz für Arbeitnehmer reduziert hat.",
+      "issues": [],
+      "ms": 1528,
+      "error": ""
+    },
+    {
+      "idx": 7,
+      "lang": "德语",
+      "source": "Layoffs have risen in technology and finance, but overall payroll growth has stayed positive.",
+      "raw": "{\"sentences\":[\"In der Technologie und Finanzbranche sind Layoffs gestiegen, aber insgesamt hat der Zahlungsvermögenwachstum positiv geblieben.\"]}",
+      "translation": "In der Technologie und Finanzbranche sind Layoffs gestiegen, aber insgesamt hat der Zahlungsvermögenwachstum positiv geblieben.",
+      "issues": [],
+      "ms": 1480,
+      "error": ""
+    },
+    {
+      "idx": 8,
+      "lang": "德语",
+      "source": "Productivity gains linked to artificial intelligence are beginning to show up in some corporate earnings.",
+      "raw": "{\"sentences\":[\"Die Produktivitätsgewinne, die mit der Künstlichen Intelligenz verbunden sind, beginnen sich in einigen Unternehmensergebnissen zu zeigen.\"]}",
+      "translation": "Die Produktivitätsgewinne, die mit der Künstlichen Intelligenz verbunden sind, beginnen sich in einigen Unternehmensergebnissen zu zeigen.",
+      "issues": [],
+      "ms": 1529,
+      "error": ""
+    },
+    {
+      "idx": 9,
+      "lang": "德语",
+      "source": "Business investment in software and data centers has been one of the brighter spots in recent GDP reports.",
+      "raw": "{\"sentences\":[\"Die Investitionen in Software und Datenzentren im Bereich der Wirtschaftsinvestitionen sind eines der besseren Punkte in den letzten GDP-Berichten.\"]}",
+      "translation": "Die Investitionen in Software und Datenzentren im Bereich der Wirtschaftsinvestitionen sind eines der besseren Punkte in den letzten GDP-Berichten.",
+      "issues": [],
+      "ms": 1460,
+      "error": ""
+    },
+    {
+      "idx": 0,
+      "lang": "意大利语",
+      "source": "The United States economy remains the largest in the world by nominal GDP.",
+      "raw": "{\"sentences\":[\"L'economia degli Stati Uniti rimane tuttora la più grande al mondo per il PIB nominale.\"]}",
+      "translation": "L'economia degli Stati Uniti rimane tuttora la più grande al mondo per il PIB nominale.",
+      "issues": [],
+      "ms": 1946,
+      "error": ""
+    },
+    {
+      "idx": 1,
+      "lang": "意大利语",
+      "source": "Consumer spending still accounts for roughly two thirds of U.S. economic activity.",
+      "raw": "{\"sentences\":[\"Il consumo dei consumatori continua a rappresentare circa il due terzi dell'attività economica degli Stati Uniti.\"]}",
+      "translation": "Il consumo dei consumatori continua a rappresentare circa il due terzi dell'attività economica degli Stati Uniti.",
+      "issues": [],
+      "ms": 1200,
+      "error": ""
+    },
+    {
+      "idx": 2,
+      "lang": "意大利语",
+      "source": "The Federal Reserve has spent the past two years trying to cool inflation without triggering a deep recession.",
+      "raw": "{\"sentences\":[\"Il Federal Reserve ha passato i due anni passati cercando di raffreddare l'inflazione senza provocare una recessione profonda.\"]}",
+      "translation": "Il Federal Reserve ha passato i due anni passati cercando di raffreddare l'inflazione senza provocare una recessione profonda.",
+      "issues": [],
+      "ms": 1422,
+      "error": ""
+    },
+    {
+      "idx": 3,
+      "lang": "意大利语",
+      "source": "Core inflation has slowed from its peak, but service prices remain sticky.",
+      "raw": "{\"sentences\":[\"La inflazione core si è spenta dal suo picco, ma i prezzi dei servizi rimangono aderenti.\"]}",
+      "translation": "La inflazione core si è spenta dal suo picco, ma i prezzi dei servizi rimangono aderenti.",
+      "issues": [],
+      "ms": 1298,
+      "error": ""
+    },
+    {
+      "idx": 4,
+      "lang": "意大利语",
+      "source": "Wage growth has moderated, yet many households still feel squeezed by rent and groceries.",
+      "raw": "{\"sentences\":[\"La crescita delle redditi è moderata, tuttavia molti famiglie ancora sentono il peso della spesa per le bollette e dei supermercati.\"]}",
+      "translation": "La crescita delle redditi è moderata, tuttavia molti famiglie ancora sentono il peso della spesa per le bollette e dei supermercati.",
+      "issues": [],
+      "ms": 1482,
+      "error": ""
+    },
+    {
+      "idx": 5,
+      "lang": "意大利语",
+      "source": "The labor market is less overheated than in 2022, though unemployment remains historically low.",
+      "raw": "{\"sentences\":[\"Il mercato del lavoro è meno all'erta dell'anno 2022, tuttavia l'ubbidienza rimane storicamente bassa.\"]}",
+      "translation": "Il mercato del lavoro è meno all'erta dell'anno 2022, tuttavia l'ubbidienza rimane storicamente bassa.",
+      "issues": [],
+      "ms": 1576,
+      "error": ""
+    },
+    {
+      "idx": 6,
+      "lang": "意大利语",
+      "source": "Job openings have declined, reducing the intense competition for workers seen earlier in the cycle.",
+      "raw": "{\"sentences\":[\"Iscuovere di posti di lavoro sono diminuiti, riducendo la concorrenza intensa per i lavoratori vista prima nella ciclo.\"]}",
+      "translation": "Iscuovere di posti di lavoro sono diminuiti, riducendo la concorrenza intensa per i lavoratori vista prima nella ciclo.",
+      "issues": [],
+      "ms": 1434,
+      "error": ""
+    },
+    {
+      "idx": 7,
+      "lang": "意大利语",
+      "source": "Layoffs have risen in technology and finance, but overall payroll growth has stayed positive.",
+      "raw": "{\"sentences\":[\"Istrappiamenti sono aumentati nell'informatica e nel finito, ma la crescita del reddito imponibile ha mantenuto un segno positivo in totale.\"]}",
+      "translation": "Istrappiamenti sono aumentati nell'informatica e nel finito, ma la crescita del reddito imponibile ha mantenuto un segno positivo in totale.",
+      "issues": [],
+      "ms": 1560,
+      "error": ""
+    },
+    {
+      "idx": 8,
+      "lang": "意大利语",
+      "source": "Productivity gains linked to artificial intelligence are beginning to show up in some corporate earnings.",
+      "raw": "{\"sentences\":[\"Isole di guadagno nella produttività legate all'Intelligenza Artificiale stanno iniziando a comparire nelle entrate aziendali.\"]}",
+      "translation": "Isole di guadagno nella produttività legate all'Intelligenza Artificiale stanno iniziando a comparire nelle entrate aziendali.",
+      "issues": [],
+      "ms": 1446,
+      "error": ""
+    },
+    {
+      "idx": 9,
+      "lang": "意大利语",
+      "source": "Business investment in software and data centers has been one of the brighter spots in recent GDP reports.",
+      "raw": "{\"sentences\":[\"L'investimento in business nel software e nelle centrale di dati è stato uno dei punti chiave più luminosi nei recenti report del PIL.\"]}",
+      "translation": "L'investimento in business nel software e nelle centrale di dati è stato uno dei punti chiave più luminosi nei recenti report del PIL.",
+      "issues": [],
+      "ms": 1424,
+      "error": ""
+    },
+    {
+      "idx": 0,
+      "lang": "日语",
+      "source": "The United States economy remains the largest in the world by nominal GDP.",
+      "raw": "{\"sentences\":[\"名目GDPで世界最大の経済であるアメリカの経済は依然として残っている。\"]}",
+      "translation": "名目GDPで世界最大の経済であるアメリカの経済は依然として残っている。",
+      "issues": [],
+      "ms": 2002,
+      "error": ""
+    },
+    {
+      "idx": 1,
+      "lang": "日语",
+      "source": "Consumer spending still accounts for roughly two thirds of U.S. economic activity.",
+      "raw": "{\"sentences\":[\"アメリカの経済活動の約二分の三が消費支出によって占められている。\"]}",
+      "translation": "アメリカの経済活動の約二分の三が消費支出によって占められている。",
+      "issues": [],
+      "ms": 1060,
+      "error": ""
+    },
+    {
+      "idx": 2,
+      "lang": "日语",
+      "source": "The Federal Reserve has spent the past two years trying to cool inflation without triggering a deep recession.",
+      "raw": "{\"sentences\":[\"連邦準備システムは過去2年間、物価上昇を冷却するのに尽力しながら深まるリセッションを引き起こさないようにしています。\"]}",
+      "translation": "連邦準備システムは過去2年間、物価上昇を冷却するのに尽力しながら深まるリセッションを引き起こさないようにしています。",
+      "issues": [],
+      "ms": 1301,
+      "error": ""
+    },
+    {
+      "idx": 3,
+      "lang": "日语",
+      "source": "Core inflation has slowed from its peak, but service prices remain sticky.",
+      "raw": "{\"sentences\":[\"コアインフレーションはピークから低下し、サービス価格は依然として固執している。\"]}",
+      "translation": "コアインフレーションはピークから低下し、サービス価格は依然として固執している。",
+      "issues": [],
+      "ms": 1201,
+      "error": ""
+    },
+    {
+      "idx": 4,
+      "lang": "日语",
+      "source": "Wage growth has moderated, yet many households still feel squeezed by rent and groceries.",
+      "raw": "{\"sentences\":[\"賃料と Groceries に対する支出が households に圧迫感を残しているにもかかわらず、賃金の伸びは鈍化している。\"]}",
+      "translation": "賃料と Groceries に対する支出が households に圧迫感を残しているにもかかわらず、賃金の伸びは鈍化している。",
+      "issues": [
+        "latin_leftover:Groceries,households"
+      ],
+      "ms": 1382,
+      "error": ""
+    },
+    {
+      "idx": 5,
+      "lang": "日语",
+      "source": "The labor market is less overheated than in 2022, though unemployment remains historically low.",
+      "raw": "{\"sentences\":[\"労働市場は2022年と比較してやや過熱していないが、失業率は史上最低水準を維持している。\"]}",
+      "translation": "労働市場は2022年と比較してやや過熱していないが、失業率は史上最低水準を維持している。",
+      "issues": [],
+      "ms": 1375,
+      "error": ""
+    },
+    {
+      "idx": 6,
+      "lang": "日语",
+      "source": "Job openings have declined, reducing the intense competition for workers seen earlier in the cycle.",
+      "raw": "{\"sentences\":[\"求人件数が減少し、前半のサイクルで見られた激しい労働者の競争が軽減されている。\"]}",
+      "translation": "求人件数が減少し、前半のサイクルで見られた激しい労働者の競争が軽減されている。",
+      "issues": [],
+      "ms": 1300,
+      "error": ""
+    },
+    {
+      "idx": 7,
+      "lang": "日语",
+      "source": "Layoffs have risen in technology and finance, but overall payroll growth has stayed positive.",
+      "raw": "{\"sentences\":[\"テクノロジーや金融業界でリストラが増加しているが、全体的な雇用者数の伸びは依然として正である。\"]}",
+      "translation": "テクノロジーや金融業界でリストラが増加しているが、全体的な雇用者数の伸びは依然として正である。",
+      "issues": [],
+      "ms": 1274,
+      "error": ""
+    },
+    {
+      "idx": 8,
+      "lang": "日语",
+      "source": "Productivity gains linked to artificial intelligence are beginning to show up in some corporate earnings.",
+      "raw": "{\"sentences\":[\"AIによる生産性の向上は、一部の企業の業績に表れ始めている。\"]}",
+      "translation": "AIによる生産性の向上は、一部の企業の業績に表れ始めている。",
+      "issues": [],
+      "ms": 965,
+      "error": ""
+    },
+    {
+      "idx": 9,
+      "lang": "日语",
+      "source": "Business investment in software and data centers has been one of the brighter spots in recent GDP reports.",
+      "raw": "{\"sentences\":[\"最近のGDP報告でソフトウェアとデータセンターへの投資は一つの明るいポイントでした。\"]}",
+      "translation": "最近のGDP報告でソフトウェアとデータセンターへの投資は一つの明るいポイントでした。",
+      "issues": [],
+      "ms": 986,
+      "error": ""
+    },
+    {
+      "idx": 0,
+      "lang": "法语",
+      "source": "The United States economy remains the largest in the world by nominal GDP.",
+      "raw": "{\"sentences\":[\"L'économie des États-Unis reste la plus grande au monde en termes de PIB nominal.\"]}",
+      "translation": "L'économie des États-Unis reste la plus grande au monde en termes de PIB nominal.",
+      "issues": [],
+      "ms": 1931,
+      "error": ""
+    },
+    {
+      "idx": 1,
+      "lang": "法语",
+      "source": "Consumer spending still accounts for roughly two thirds of U.S. economic activity.",
+      "raw": "{\"sentences\":[\"Le dépense des consommateurs reste largement responsable d'environ deux tiers de l'activité économique des États-Unis.\"]}",
+      "translation": "Le dépense des consommateurs reste largement responsable d'environ deux tiers de l'activité économique des États-Unis.",
+      "issues": [],
+      "ms": 1258,
+      "error": ""
+    },
+    {
+      "idx": 2,
+      "lang": "法语",
+      "source": "The Federal Reserve has spent the past two years trying to cool inflation without triggering a deep recession.",
+      "raw": "{\"sentences\":[\"La Réserve fédérale a passé les deux dernières années à essayer de réduire l'inflation sans provoquer une récession profonde.\"]}",
+      "translation": "La Réserve fédérale a passé les deux dernières années à essayer de réduire l'inflation sans provoquer une récession profonde.",
+      "issues": [],
+      "ms": 1722,
+      "error": ""
+    },
+    {
+      "idx": 3,
+      "lang": "法语",
+      "source": "Core inflation has slowed from its peak, but service prices remain sticky.",
+      "raw": "{\"sentences\":[\"La inflation core a ralenti depuis son pic, mais les prix des services restent rigides.\"]}",
+      "translation": "La inflation core a ralenti depuis son pic, mais les prix des services restent rigides.",
+      "issues": [],
+      "ms": 1211,
+      "error": ""
+    },
+    {
+      "idx": 4,
+      "lang": "法语",
+      "source": "Wage growth has moderated, yet many households still feel squeezed by rent and groceries.",
+      "raw": "{\"sentences\":[\"La croissance des salaires s'est ralentie, bien que de nombreux ménages se sentent toujours écrasés par les loyers et les courses.\"]}",
+      "translation": "La croissance des salaires s'est ralentie, bien que de nombreux ménages se sentent toujours écrasés par les loyers et les courses.",
+      "issues": [],
+      "ms": 1627,
+      "error": ""
+    },
+    {
+      "idx": 5,
+      "lang": "法语",
+      "source": "The labor market is less overheated than in 2022, though unemployment remains historically low.",
+      "raw": "{\"sentences\":[\"Le marché du travail est moins surchauffé qu'en 2022, bien que l'emploi reste historiquement bas.\"]}",
+      "translation": "Le marché du travail est moins surchauffé qu'en 2022, bien que l'emploi reste historiquement bas.",
+      "issues": [],
+      "ms": 1426,
+      "error": ""
+    },
+    {
+      "idx": 6,
+      "lang": "法语",
+      "source": "Job openings have declined, reducing the intense competition for workers seen earlier in the cycle.",
+      "raw": "{\"sentences\":[\"Les postes de travail sont de moins en moins disponibles, réduisant la concurrence intense observée plus tôt dans la cycle.\"]}",
+      "translation": "Les postes de travail sont de moins en moins disponibles, réduisant la concurrence intense observée plus tôt dans la cycle.",
+      "issues": [],
+      "ms": 1616,
+      "error": ""
+    },
+    {
+      "idx": 7,
+      "lang": "法语",
+      "source": "Layoffs have risen in technology and finance, but overall payroll growth has stayed positive.",
+      "raw": "{\"sentences\":[\"Les licenciements ont augmenté dans le secteur technologique et financier, mais la croissance du salaire global reste positive.\"]}",
+      "translation": "Les licenciements ont augmenté dans le secteur technologique et financier, mais la croissance du salaire global reste positive.",
+      "issues": [],
+      "ms": 1421,
+      "error": ""
+    },
+    {
+      "idx": 8,
+      "lang": "法语",
+      "source": "Productivity gains linked to artificial intelligence are beginning to show up in some corporate earnings.",
+      "raw": "{\"sentences\":[\"Les gains de productivité liés à l'intelligence artificielle commencent à apparaître dans certains résultats d'exploitation des entreprises.\"]}",
+      "translation": "Les gains de productivité liés à l'intelligence artificielle commencent à apparaître dans certains résultats d'exploitation des entreprises.",
+      "issues": [],
+      "ms": 1342,
+      "error": ""
+    },
+    {
+      "idx": 9,
+      "lang": "法语",
+      "source": "Business investment in software and data centers has been one of the brighter spots in recent GDP reports.",
+      "raw": "{\"sentences\":[\"L'investissement dans le logiciel et les centres de données constitue l'un des points forts dans les derniers rapports de PIB.\"]}",
+      "translation": "L'investissement dans le logiciel et les centres de données constitue l'un des points forts dans les derniers rapports de PIB.",
+      "issues": [],
+      "ms": 1473,
+      "error": ""
+    },
+    {
+      "idx": 0,
+      "lang": "英语",
+      "source": "The United States economy remains the largest in the world by nominal GDP.",
+      "raw": "{\"sentences\":[\"The United States economy continues to have the largest nominal GDP in the world.\"]}",
+      "translation": "The United States economy continues to have the largest nominal GDP in the world.",
+      "issues": [],
+      "ms": 1062,
+      "error": ""
+    },
+    {
+      "idx": 1,
+      "lang": "英语",
+      "source": "Consumer spending still accounts for roughly two thirds of U.S. economic activity.",
+      "raw": "{\"sentences\":[\"Consumer spending still accounts for about two-thirds of U.S. economic activity.\"]}",
+      "translation": "Consumer spending still accounts for about two-thirds of U.S. economic activity.",
+      "issues": [],
+      "ms": 1276,
+      "error": ""
+    },
+    {
+      "idx": 2,
+      "lang": "英语",
+      "source": "The Federal Reserve has spent the past two years trying to cool inflation without triggering a deep recession.",
+      "raw": "{\"sentences\":[\"The Federal Reserve has spent the past two years trying to curb inflation without triggering a deep recession.\"]}",
+      "translation": "The Federal Reserve has spent the past two years trying to curb inflation without triggering a deep recession.",
+      "issues": [],
+      "ms": 1038,
+      "error": ""
+    },
+    {
+      "idx": 3,
+      "lang": "英语",
+      "source": "Core inflation has slowed from its peak, but service prices remain sticky.",
+      "raw": "{\"sentences\":[\"Core inflation has slowed from its peak, but service prices remain sticky.\"]}",
+      "translation": "Core inflation has slowed from its peak, but service prices remain sticky.",
+      "issues": [],
+      "ms": 1242,
+      "error": ""
+    },
+    {
+      "idx": 4,
+      "lang": "英语",
+      "source": "Wage growth has moderated, yet many households still feel squeezed by rent and groceries.",
+      "raw": "{\"sentences\":[\"Wage growth has moderated, yet many households still feel squeezed by rent and groceries.\"]}",
+      "translation": "Wage growth has moderated, yet many households still feel squeezed by rent and groceries.",
+      "issues": [],
+      "ms": 954,
+      "error": ""
+    },
+    {
+      "idx": 5,
+      "lang": "英语",
+      "source": "The labor market is less overheated than in 2022, though unemployment remains historically low.",
+      "raw": "{\"sentences\":[\"The labor market is less overheated than in 2022, though unemployment remains historically low.\"]}",
+      "translation": "The labor market is less overheated than in 2022, though unemployment remains historically low.",
+      "issues": [],
+      "ms": 1165,
+      "error": ""
+    },
+    {
+      "idx": 6,
+      "lang": "英语",
+      "source": "Job openings have declined, reducing the intense competition for workers seen earlier in the cycle.",
+      "raw": "{\"sentences\":[\"Job openings have decreased, reducing the intense competition for workers observed earlier in the cycle.\"]}",
+      "translation": "Job openings have decreased, reducing the intense competition for workers observed earlier in the cycle.",
+      "issues": [],
+      "ms": 1271,
+      "error": ""
+    },
+    {
+      "idx": 7,
+      "lang": "英语",
+      "source": "Layoffs have risen in technology and finance, but overall payroll growth has stayed positive.",
+      "raw": "{\"sentences\":[\"Layoffs have increased in the technology and finance sectors, but overall payroll growth has remained positive.\"]}",
+      "translation": "Layoffs have increased in the technology and finance sectors, but overall payroll growth has remained positive.",
+      "issues": [],
+      "ms": 1307,
+      "error": ""
+    },
+    {
+      "idx": 8,
+      "lang": "英语",
+      "source": "Productivity gains linked to artificial intelligence are beginning to show up in some corporate earnings.",
+      "raw": "{\"sentences\":[\"Productivity gains linked to artificial intelligence are starting to appear in some corporate earnings.\"]}",
+      "translation": "Productivity gains linked to artificial intelligence are starting to appear in some corporate earnings.",
+      "issues": [],
+      "ms": 986,
+      "error": ""
+    },
+    {
+      "idx": 9,
+      "lang": "英语",
+      "source": "Business investment in software and data centers has been one of the brighter spots in recent GDP reports.",
+      "raw": "{\"sentences\":[\"Business investment in software and data centers has been a bright spot in recent GDP reports.\"]}",
+      "translation": "Business investment in software and data centers has been a bright spot in recent GDP reports.",
+      "issues": [],
+      "ms": 1158,
+      "error": ""
+    },
+    {
+      "idx": 0,
+      "lang": "葡萄牙语",
+      "source": "The United States economy remains the largest in the world by nominal GDP.",
+      "raw": "{\"sentences\":[\"A economia dos Estados Unidos permanece a maior do mundo em termos de PIB nominal.\"]}",
+      "translation": "A economia dos Estados Unidos permanece a maior do mundo em termos de PIB nominal.",
+      "issues": [],
+      "ms": 1822,
+      "error": ""
+    },
+    {
+      "idx": 1,
+      "lang": "葡萄牙语",
+      "source": "Consumer spending still accounts for roughly two thirds of U.S. economic activity.",
+      "raw": "{\"sentences\":[\"Assests de consumo ainda representam cerca de duas thirds da atividade econômica dos Estados Unidos.\"]}",
+      "translation": "Assests de consumo ainda representam cerca de duas thirds da atividade econômica dos Estados Unidos.",
+      "issues": [],
+      "ms": 1214,
+      "error": ""
+    },
+    {
+      "idx": 2,
+      "lang": "葡萄牙语",
+      "source": "The Federal Reserve has spent the past two years trying to cool inflation without triggering a deep recession.",
+      "raw": "{\"sentences\":[\"O Banco Central Federal tem passado os últimos dois anos tentando conter a inflação sem acionar uma recessão profunda.\"]}",
+      "translation": "O Banco Central Federal tem passado os últimos dois anos tentando conter a inflação sem acionar uma recessão profunda.",
+      "issues": [],
+      "ms": 1386,
+      "error": ""
+    },
+    {
+      "idx": 3,
+      "lang": "葡萄牙语",
+      "source": "Core inflation has slowed from its peak, but service prices remain sticky.",
+      "raw": "{\"sentences\":[\"A inflação corem diminuiu desde seu pico, mas os preços de serviços ainda são estáveis.\"]}",
+      "translation": "A inflação corem diminuiu desde seu pico, mas os preços de serviços ainda são estáveis.",
+      "issues": [],
+      "ms": 1260,
+      "error": ""
+    },
+    {
+      "idx": 4,
+      "lang": "葡萄牙语",
+      "source": "Wage growth has moderated, yet many households still feel squeezed by rent and groceries.",
+      "raw": "{\"sentences\":[\"Aumento salarial tem moderado, mas muitas famílias ainda se sentem apertadas com aluguel e alimentos.\"]}",
+      "translation": "Aumento salarial tem moderado, mas muitas famílias ainda se sentem apertadas com aluguel e alimentos.",
+      "issues": [],
+      "ms": 1376,
+      "error": ""
+    },
+    {
+      "idx": 5,
+      "lang": "葡萄牙语",
+      "source": "The labor market is less overheated than in 2022, though unemployment remains historically low.",
+      "raw": "{\"sentences\":[\"O mercado de trabalho está menos aquecido do que em 2022, embora a taxa de desemprego permaneça histórica.\"] }",
+      "translation": "O mercado de trabalho está menos aquecido do que em 2022, embora a taxa de desemprego permaneça histórica.",
+      "issues": [],
+      "ms": 1536,
+      "error": ""
+    },
+    {
+      "idx": 6,
+      "lang": "葡萄牙语",
+      "source": "Job openings have declined, reducing the intense competition for workers seen earlier in the cycle.",
+      "raw": "{\"sentences\":[\"Assestamentos de emprego têm diminuído, reduzindo a intensa competição de trabalhadores vista anteriormente na ciclo.\"]}",
+      "translation": "Assestamentos de emprego têm diminuído, reduzindo a intensa competição de trabalhadores vista anteriormente na ciclo.",
+      "issues": [],
+      "ms": 1362,
+      "error": ""
+    },
+    {
+      "idx": 7,
+      "lang": "葡萄牙语",
+      "source": "Layoffs have risen in technology and finance, but overall payroll growth has stayed positive.",
+      "raw": "{\"sentences\":[\"Redução de pessoal aumentou no setor de tecnologia e finanças, mas a expansão do payroll ficou positiva em geral.\"]}",
+      "translation": "Redução de pessoal aumentou no setor de tecnologia e finanças, mas a expansão do payroll ficou positiva em geral.",
+      "issues": [],
+      "ms": 1493,
+      "error": ""
+    },
+    {
+      "idx": 8,
+      "lang": "葡萄牙语",
+      "source": "Productivity gains linked to artificial intelligence are beginning to show up in some corporate earnings.",
+      "raw": "{\"sentences\":[\"Melhores resultados financeiros em algumas empresas estão começando a mostrar ganhos de produtividade ligados à inteligência artificial.\"]}",
+      "translation": "Melhores resultados financeiros em algumas empresas estão começando a mostrar ganhos de produtividade ligados à inteligência artificial.",
+      "issues": [],
+      "ms": 1306,
+      "error": ""
+    },
+    {
+      "idx": 9,
+      "lang": "葡萄牙语",
+      "source": "Business investment in software and data centers has been one of the brighter spots in recent GDP reports.",
+      "raw": "{\"sentences\":[\"Investimento empresarial em softwares e centros de dados tem sido um dos pontos mais brilhantes nos últimos relatórios de PIB.\"]}",
+      "translation": "Investimento empresarial em softwares e centros de dados tem sido um dos pontos mais brilhantes nos últimos relatórios de PIB.",
+      "issues": [],
+      "ms": 1387,
+      "error": ""
+    },
+    {
+      "idx": 0,
+      "lang": "西班牙语",
+      "source": "The United States economy remains the largest in the world by nominal GDP.",
+      "raw": "{\"sentences\":[\"La economía de los Estados Unidos sigue siendo la más grande del mundo en términos de PIB nominal.\"]}",
+      "translation": "La economía de los Estados Unidos sigue siendo la más grande del mundo en términos de PIB nominal.",
+      "issues": [],
+      "ms": 2117,
+      "error": ""
+    },
+    {
+      "idx": 1,
+      "lang": "西班牙语",
+      "source": "Consumer spending still accounts for roughly two thirds of U.S. economic activity.",
+      "raw": "{\"sentences\":[\"Las compras de los consumidores siguen representando aproximadamente dos tercios de la actividad económica de los Estados Unidos.\"]}",
+      "translation": "Las compras de los consumidores siguen representando aproximadamente dos tercios de la actividad económica de los Estados Unidos.",
+      "issues": [],
+      "ms": 1287,
+      "error": ""
+    },
+    {
+      "idx": 2,
+      "lang": "西班牙语",
+      "source": "The Federal Reserve has spent the past two years trying to cool inflation without triggering a deep recession.",
+      "raw": "{\"sentences\":[\"El Banco de la Reserva Federal ha estado intentando durante los últimos dos años frenar la inflación sin provocar una recesión profunda.\"]}",
+      "translation": "El Banco de la Reserva Federal ha estado intentando durante los últimos dos años frenar la inflación sin provocar una recesión profunda.",
+      "issues": [],
+      "ms": 1370,
+      "error": ""
+    },
+    {
+      "idx": 3,
+      "lang": "西班牙语",
+      "source": "Core inflation has slowed from its peak, but service prices remain sticky.",
+      "raw": "{\"sentences\":[\"La inflación core ha disminuido desde su máximo, pero los precios de los servicios siguen siendo fijos.\"]}",
+      "translation": "La inflación core ha disminuido desde su máximo, pero los precios de los servicios siguen siendo fijos.",
+      "issues": [],
+      "ms": 1384,
+      "error": ""
+    },
+    {
+      "idx": 4,
+      "lang": "西班牙语",
+      "source": "Wage growth has moderated, yet many households still feel squeezed by rent and groceries.",
+      "raw": "{\"sentences\":[\"La creación de empleo ha moderado, aunque muchas familias aún se sienten presionadas por el alquiler y los alimentos.\"]}",
+      "translation": "La creación de empleo ha moderado, aunque muchas familias aún se sienten presionadas por el alquiler y los alimentos.",
+      "issues": [],
+      "ms": 1687,
+      "error": ""
+    },
+    {
+      "idx": 5,
+      "lang": "西班牙语",
+      "source": "The labor market is less overheated than in 2022, though unemployment remains historically low.",
+      "raw": "{\"sentences\":[\"El mercado laboral está menos sobrecalentado que en 2022, aunque la tasa de desempleo sigue siendo históricamente baja.\"]}",
+      "translation": "El mercado laboral está menos sobrecalentado que en 2022, aunque la tasa de desempleo sigue siendo históricamente baja.",
+      "issues": [],
+      "ms": 1481,
+      "error": ""
+    },
+    {
+      "idx": 6,
+      "lang": "西班牙语",
+      "source": "Job openings have declined, reducing the intense competition for workers seen earlier in the cycle.",
+      "raw": "{\"sentences\":[\"Las ofertas de empleo han disminuido, reduciendo la intensa competencia de trabajadores vista anteriormente en la ciclo.\"]}",
+      "translation": "Las ofertas de empleo han disminuido, reduciendo la intensa competencia de trabajadores vista anteriormente en la ciclo.",
+      "issues": [],
+      "ms": 1522,
+      "error": ""
+    },
+    {
+      "idx": 7,
+      "lang": "西班牙语",
+      "source": "Layoffs have risen in technology and finance, but overall payroll growth has stayed positive.",
+      "raw": "{\"sentences\":[\"Las despidas han aumentado en tecnología y finanzas, pero la creación de empleo en términos de nómina ha permanecido positiva.\"]}",
+      "translation": "Las despidas han aumentado en tecnología y finanzas, pero la creación de empleo en términos de nómina ha permanecido positiva.",
+      "issues": [],
+      "ms": 1611,
+      "error": ""
+    },
+    {
+      "idx": 8,
+      "lang": "西班牙语",
+      "source": "Productivity gains linked to artificial intelligence are beginning to show up in some corporate earnings.",
+      "raw": "{\"sentences\":[\"Los ganancias de productividad vinculadas a la inteligencia artificial están empezando a aparecer en algunos informes de resultados corporativos.\"]}",
+      "translation": "Los ganancias de productividad vinculadas a la inteligencia artificial están empezando a aparecer en algunos informes de resultados corporativos.",
+      "issues": [],
+      "ms": 1498,
+      "error": ""
+    },
+    {
+      "idx": 9,
+      "lang": "西班牙语",
+      "source": "Business investment in software and data centers has been one of the brighter spots in recent GDP reports.",
+      "raw": "{\"sentences\":[\"Las inversiones empresariales en software y centros de datos han sido uno de los puntos brillantes en los últimos informes de PIB.\"]}",
+      "translation": "Las inversiones empresariales en software y centros de datos han sido uno de los puntos brillantes en los últimos informes de PIB.",
+      "issues": [],
+      "ms": 1451,
+      "error": ""
+    },
+    {
+      "idx": 0,
+      "lang": "越南语",
+      "source": "The United States economy remains the largest in the world by nominal GDP.",
+      "raw": "{\"sentences\":[\"Kinh tế Hoa Kỳ vẫn là lớn nhất thế giới theo GDP thực.\"]}",
+      "translation": "Kinh tế Hoa Kỳ vẫn là lớn nhất thế giới theo GDP thực.",
+      "issues": [],
+      "ms": 1992,
+      "error": ""
+    },
+    {
+      "idx": 1,
+      "lang": "越南语",
+      "source": "Consumer spending still accounts for roughly two thirds of U.S. economic activity.",
+      "raw": "{\"sentences\":[\"Tiêu dùng người tiêu dùng vẫn chiếm khoảng hai phần ba hoạt động kinh tế của Mỹ.\"]}",
+      "translation": "Tiêu dùng người tiêu dùng vẫn chiếm khoảng hai phần ba hoạt động kinh tế của Mỹ.",
+      "issues": [],
+      "ms": 1138,
+      "error": ""
+    },
+    {
+      "idx": 2,
+      "lang": "越南语",
+      "source": "The Federal Reserve has spent the past two years trying to cool inflation without triggering a deep recession.",
+      "raw": "{\"sentences\":[\"Ủy ban Dự báo Tiền tệ đã tiêu tốn hai năm qua nhằm làm giảm lạm phát mà không làm kích thích một cuộc suy thoái sâu sắc.\"]}",
+      "translation": "Ủy ban Dự báo Tiền tệ đã tiêu tốn hai năm qua nhằm làm giảm lạm phát mà không làm kích thích một cuộc suy thoái sâu sắc.",
+      "issues": [],
+      "ms": 1564,
+      "error": ""
+    },
+    {
+      "idx": 3,
+      "lang": "越南语",
+      "source": "Core inflation has slowed from its peak, but service prices remain sticky.",
+      "raw": "{\"sentences\":[\"Giá dịch vụ vẫn còn cứng nhắc mặc dù inflation đã giảm từ mức cao.\"]}",
+      "translation": "Giá dịch vụ vẫn còn cứng nhắc mặc dù inflation đã giảm từ mức cao.",
+      "issues": [],
+      "ms": 1123,
+      "error": ""
+    },
+    {
+      "idx": 4,
+      "lang": "越南语",
+      "source": "Wage growth has moderated, yet many households still feel squeezed by rent and groceries.",
+      "raw": "{\"sentences\":[\"Giá cước lương đã suy giảm, nhưng nhiều gia đình vẫn cảm thấy bị ép bởi tiền thuê nhà và thực phẩm.\"]}",
+      "translation": "Giá cước lương đã suy giảm, nhưng nhiều gia đình vẫn cảm thấy bị ép bởi tiền thuê nhà và thực phẩm.",
+      "issues": [],
+      "ms": 1411,
+      "error": ""
+    },
+    {
+      "idx": 5,
+      "lang": "越南语",
+      "source": "The labor market is less overheated than in 2022, though unemployment remains historically low.",
+      "raw": "{\"sentences\":[\"Thị trường lao động ít nóng hơn so với năm 2022, mặc dù tỷ lệ thất nghiệp vẫn ở mức thấp nhất lịch sử.\"]}",
+      "translation": "Thị trường lao động ít nóng hơn so với năm 2022, mặc dù tỷ lệ thất nghiệp vẫn ở mức thấp nhất lịch sử.",
+      "issues": [],
+      "ms": 1536,
+      "error": ""
+    },
+    {
+      "idx": 6,
+      "lang": "越南语",
+      "source": "Job openings have declined, reducing the intense competition for workers seen earlier in the cycle.",
+      "raw": "{\n  \"sentences\": [\"Đăng tuyển việc làm đã giảm, giảm bớt sự cạnh tranh gay gắt đối với lao động được nhìn thấy trong giai đoạn trước.\"]\n}",
+      "translation": "Đăng tuyển việc làm đã giảm, giảm bớt sự cạnh tranh gay gắt đối với lao động được nhìn thấy trong giai đoạn trước.",
+      "issues": [],
+      "ms": 1278,
+      "error": ""
+    },
+    {
+      "idx": 7,
+      "lang": "越南语",
+      "source": "Layoffs have risen in technology and finance, but overall payroll growth has stayed positive.",
+      "raw": "{\"sentences\":[\"Giảm员工人数在科技和金融行业增加，但总体薪酬增长保持正向。\"]}",
+      "translation": "Giảm员工人数在科技和金融行业增加，但总体薪酬增长保持正向。",
+      "issues": [
+        "low_latin",
+        "han_leftover"
+      ],
+      "ms": 1325,
+      "error": ""
+    },
+    {
+      "idx": 8,
+      "lang": "越南语",
+      "source": "Productivity gains linked to artificial intelligence are beginning to show up in some corporate earnings.",
+      "raw": "{\"sentences\":[\"Giảm thời gian làm việc và lợi ích từ trí tuệ nhân tạo bắt đầu xuất hiện trong lợi nhuận của một số công ty.\"] }",
+      "translation": "Giảm thời gian làm việc và lợi ích từ trí tuệ nhân tạo bắt đầu xuất hiện trong lợi nhuận của một số công ty.",
+      "issues": [],
+      "ms": 1338,
+      "error": ""
+    },
+    {
+      "idx": 9,
+      "lang": "越南语",
+      "source": "Business investment in software and data centers has been one of the brighter spots in recent GDP reports.",
+      "raw": "{\"sentences\":[\"Nhu cầu đầu tư kinh doanh vào các trung tâm dữ liệu và phần mềm đã là một điểm sáng trong các báo cáo GDP gần đây.\"]}",
+      "translation": "Nhu cầu đầu tư kinh doanh vào các trung tâm dữ liệu và phần mềm đã là một điểm sáng trong các báo cáo GDP gần đây.",
+      "issues": [],
+      "ms": 1599,
+      "error": ""
+    },
+    {
+      "idx": 0,
+      "lang": "阿拉伯语",
+      "source": "The United States economy remains the largest in the world by nominal GDP.",
+      "raw": "{\"sentences\":[\"اقتصاد الولايات المتحدة يبقى الأكبر في العالم من حيث إجمالي الناتج المحلي الحقيقي.\"]}",
+      "translation": "اقتصاد الولايات المتحدة يبقى الأكبر في العالم من حيث إجمالي الناتج المحلي الحقيقي.",
+      "issues": [],
+      "ms": 2131,
+      "error": ""
+    },
+    {
+      "idx": 1,
+      "lang": "阿拉伯语",
+      "source": "Consumer spending still accounts for roughly two thirds of U.S. economic activity.",
+      "raw": "{\"sentences\":[\"الإنفاق الاستهلاكي لا يزال يشكل حوالي ثلثي النشاط الاقتصادي في الولايات المتحدة.\"]}",
+      "translation": "الإنفاق الاستهلاكي لا يزال يشكل حوالي ثلثي النشاط الاقتصادي في الولايات المتحدة.",
+      "issues": [],
+      "ms": 1185,
+      "error": ""
+    },
+    {
+      "idx": 2,
+      "lang": "阿拉伯语",
+      "source": "The Federal Reserve has spent the past two years trying to cool inflation without triggering a deep recession.",
+      "raw": "{\"sentences\":[\" central bank قد إنفجروا في الأعوام ال dosةيين الماضية لمحاولة تبريد التضخم دون إشعال Recession عميقة.\"]}",
+      "translation": "central bank قد إنفجروا في الأعوام ال dosةيين الماضية لمحاولة تبريد التضخم دون إشعال Recession عميقة.",
+      "issues": [
+        "latin_leftover:central,bank,Recession"
+      ],
+      "ms": 1742,
+      "error": ""
+    },
+    {
+      "idx": 3,
+      "lang": "阿拉伯语",
+      "source": "Core inflation has slowed from its peak, but service prices remain sticky.",
+      "raw": "{\"sentences\":[\"تراجعت أسعار الفائدة الأساسية من ذروتها، بينما تظل أسعار الخدمات متماسكة.\"]}",
+      "translation": "تراجعت أسعار الفائدة الأساسية من ذروتها، بينما تظل أسعار الخدمات متماسكة.",
+      "issues": [],
+      "ms": 1330,
+      "error": ""
+    },
+    {
+      "idx": 4,
+      "lang": "阿拉伯语",
+      "source": "Wage growth has moderated, yet many households still feel squeezed by rent and groceries.",
+      "raw": "{\"sentences\":[\"توسع أ wage قد تراجع، لكن العديد من الأسر ما يزال يشعر بالضغط من فواتير الإيجار وفواتير المواد الغذائية.\"]}",
+      "translation": "توسع أ wage قد تراجع، لكن العديد من الأسر ما يزال يشعر بالضغط من فواتير الإيجار وفواتير المواد الغذائية.",
+      "issues": [
+        "latin_leftover:wage"
+      ],
+      "ms": 1653,
+      "error": ""
+    },
+    {
+      "idx": 5,
+      "lang": "阿拉伯语",
+      "source": "The labor market is less overheated than in 2022, though unemployment remains historically low.",
+      "raw": "{\"sentences\":[\"سوق العمل أقل احتقاناً من العام 2022، رغم أن البطالة تبقى منخفضة على مستوى تاريخي.\"]}",
+      "translation": "سوق العمل أقل احتقاناً من العام 2022، رغم أن البطالة تبقى منخفضة على مستوى تاريخي.",
+      "issues": [],
+      "ms": 1611,
+      "error": ""
+    },
+    {
+      "idx": 6,
+      "lang": "阿拉伯语",
+      "source": "Job openings have declined, reducing the intense competition for workers seen earlier in the cycle.",
+      "raw": "{\"sentences\":[\"ارتفعت فرص العمل، مما降低了周期早期看到的对工人的激烈竞争。\"]}",
+      "translation": "ارتفعت فرص العمل، مما降低了周期早期看到的对工人的激烈竞争。",
+      "issues": [
+        "low_arabic"
+      ],
+      "ms": 1395,
+      "error": ""
+    },
+    {
+      "idx": 7,
+      "lang": "阿拉伯语",
+      "source": "Layoffs have risen in technology and finance, but overall payroll growth has stayed positive.",
+      "raw": "{\"sentences\":[\"تزايدت الإقالات في قطاعات التكنولوجيا والمالية، لكن نمو الأجور الإجمالي بقي إيجابي.\"]}",
+      "translation": "تزايدت الإقالات في قطاعات التكنولوجيا والمالية، لكن نمو الأجور الإجمالي بقي إيجابي.",
+      "issues": [],
+      "ms": 1506,
+      "error": ""
+    },
+    {
+      "idx": 8,
+      "lang": "阿拉伯语",
+      "source": "Productivity gains linked to artificial intelligence are beginning to show up in some corporate earnings.",
+      "raw": "{\"sentences\":[\" gains مرتبطsWith التكنولوجيا الصناعية الذكية بدأت تظهر في أرباح بعض الشركات العاملة.\"]}",
+      "translation": "gains مرتبطsWith التكنولوجيا الصناعية الذكية بدأت تظهر في أرباح بعض الشركات العاملة.",
+      "issues": [
+        "latin_leftover:gains,sWith"
+      ],
+      "ms": 1525,
+      "error": ""
+    },
+    {
+      "idx": 9,
+      "lang": "阿拉伯语",
+      "source": "Business investment in software and data centers has been one of the brighter spots in recent GDP reports.",
+      "raw": "{\"sentences\":[\"استثمار الشركات في المراكز الصناعية للبرامج والبيانات كان أحد النجوم الأفضل في التقارير الأخيرة للقيمة الإجمالية للمنتجات والخدمات.\"]}",
+      "translation": "استثمار الشركات في المراكز الصناعية للبرامج والبيانات كان أحد النجوم الأفضل في التقارير الأخيرة للقيمة الإجمالية للمنتجات والخدمات.",
+      "issues": [],
+      "ms": 1701,
+      "error": ""
+    },
+    {
+      "idx": 0,
+      "lang": "韩语",
+      "source": "The United States economy remains the largest in the world by nominal GDP.",
+      "raw": "{\"sentences\":[\"미국 경제는 실질 국내총생산 기준으로 세계에서 가장 큰 경제다.\"]}",
+      "translation": "미국 경제는 실질 국내총생산 기준으로 세계에서 가장 큰 경제다.",
+      "issues": [],
+      "ms": 2045,
+      "error": ""
+    },
+    {
+      "idx": 1,
+      "lang": "韩语",
+      "source": "Consumer spending still accounts for roughly two thirds of U.S. economic activity.",
+      "raw": "{\"sentences\":[\"미국 경제 활동의 약 2/3이 소비가 차지하고 있다.\"]}",
+      "translation": "미국 경제 활동의 약 2/3이 소비가 차지하고 있다.",
+      "issues": [],
+      "ms": 1116,
+      "error": ""
+    },
+    {
+      "idx": 2,
+      "lang": "韩语",
+      "source": "The Federal Reserve has spent the past two years trying to cool inflation without triggering a deep recession.",
+      "raw": "{\"sentences\":[\"연방準備_system이 지난 두 해 동안 인플레이션을 둔화시키려고 했지만 심각한 Recession을 일으키지 않도록 하였습니다.\"]}",
+      "translation": "연방準備_system이 지난 두 해 동안 인플레이션을 둔화시키려고 했지만 심각한 Recession을 일으키지 않도록 하였습니다.",
+      "issues": [
+        "latin_leftover:system,Recession"
+      ],
+      "ms": 1698,
+      "error": ""
+    },
+    {
+      "idx": 3,
+      "lang": "韩语",
+      "source": "Core inflation has slowed from its peak, but service prices remain sticky.",
+      "raw": "{\"sentences\":[\"_Core inflation은 최고점에서 느려졌지만, 서비스 가격은 여전히 끈적임이 있다._\"]}",
+      "translation": "_Core inflation은 최고점에서 느려졌지만, 서비스 가격은 여전히 끈적임이 있다._",
+      "issues": [
+        "latin_leftover:Core,inflation"
+      ],
+      "ms": 1267,
+      "error": ""
+    },
+    {
+      "idx": 4,
+      "lang": "韩语",
+      "source": "Wage growth has moderated, yet many households still feel squeezed by rent and groceries.",
+      "raw": "{\"sentences\":[\"임금 상승이 가속화하지 않았음에도 불구하고, 많은 가구들은 임대료와 식료품에 여전히 억圧당하고 있습니다.\"]}",
+      "translation": "임금 상승이 가속화하지 않았음에도 불구하고, 많은 가구들은 임대료와 식료품에 여전히 억圧당하고 있습니다.",
+      "issues": [],
+      "ms": 1683,
+      "error": ""
+    },
+    {
+      "idx": 5,
+      "lang": "韩语",
+      "source": "The labor market is less overheated than in 2022, though unemployment remains historically low.",
+      "raw": "{\"sentences\":[\"2022년보다 노동 시장이 과열이 덜 되나, 실업률은 역대 최저 수준을 유지하고 있습니다.\"]}",
+      "translation": "2022년보다 노동 시장이 과열이 덜 되나, 실업률은 역대 최저 수준을 유지하고 있습니다.",
+      "issues": [],
+      "ms": 1512,
+      "error": ""
+    },
+    {
+      "idx": 6,
+      "lang": "韩语",
+      "source": "Job openings have declined, reducing the intense competition for workers seen earlier in the cycle.",
+      "raw": "{\"sentences\":[\"재고된 일자리가 줄어들면서, 경기循環 초반에 보였던 근로자들 사이의 극심한 경쟁이 줄어들고 있습니다.\"]}",
+      "translation": "재고된 일자리가 줄어들면서, 경기循環 초반에 보였던 근로자들 사이의 극심한 경쟁이 줄어들고 있습니다.",
+      "issues": [],
+      "ms": 1659,
+      "error": ""
+    },
+    {
+      "idx": 7,
+      "lang": "韩语",
+      "source": "Layoffs have risen in technology and finance, but overall payroll growth has stayed positive.",
+      "raw": "{\"sentences\":[\"기술과 금융 분야에서 해고가 증가하고 있지만 총 고용인원 성장은 여전히 긍정적이다.\"]}",
+      "translation": "기술과 금융 분야에서 해고가 증가하고 있지만 총 고용인원 성장은 여전히 긍정적이다.",
+      "issues": [],
+      "ms": 1508,
+      "error": ""
+    },
+    {
+      "idx": 8,
+      "lang": "韩语",
+      "source": "Productivity gains linked to artificial intelligence are beginning to show up in some corporate earnings.",
+      "raw": "{\"sentences\":[\"인공지능과 관련된 생산성 향상은 일부 기업의 실적에 처음 나타나고 있다.\"]}",
+      "translation": "인공지능과 관련된 생산성 향상은 일부 기업의 실적에 처음 나타나고 있다.",
+      "issues": [],
+      "ms": 1166,
+      "error": ""
+    },
+    {
+      "idx": 9,
+      "lang": "韩语",
+      "source": "Business investment in software and data centers has been one of the brighter spots in recent GDP reports.",
+      "raw": "{\"sentences\":[\"최근의 GDP 보고서에서 사업 투자 중 소프트웨어와 데이터 센터는 밝은 지점 중 하나였습니다.\"]}",
+      "translation": "최근의 GDP 보고서에서 사업 투자 중 소프트웨어와 데이터 센터는 밝은 지점 중 하나였습니다.",
+      "issues": [],
+      "ms": 1351,
+      "error": ""
+    }
+  ]
+}
