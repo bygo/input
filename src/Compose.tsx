@@ -372,17 +372,13 @@ export function Compose() {
   const imgW = ocrPreview?.w && ocrPreview.w > 0 ? ocrPreview.w : 0
   const imgH = ocrPreview?.h && ocrPreview.h > 0 ? ocrPreview.h : 0
   const hasLeft = original !== null
-  // OCR 已出图、尚未出字：只露截图，不占位一二栏/词卡
-  const ocrPending =
-    !!ocrPreview?.src && !sending && !text.trim() && !english.trim() && !error
-  // OCR 点词：只留截图+词卡（识别中不算）
-  const ocrDictOnly = !!ocrPreview?.src && !!dict && !ocrPending
-  const showOrig = hasLeft && !ocrDictOnly && !ocrPending
-  const showRight = !ocrPending
+  // OCR 点词：只留截图+词卡
+  const ocrDictOnly = !!ocrPreview?.src && !!dict
+  const showOrig = hasLeft && !ocrDictOnly
   const origW = showOrig ? 360 : 0
   // 截图四周 padding，露出底衬才像「被截下来的」
   const ocrPad = imgW > 0 ? 8 : 0
-  const boxW = (showRight ? 360 : 0) + imgW + ocrPad * 2 + origW
+  const boxW = 360 + imgW + ocrPad * 2 + origW
   const lineH = 40 // 一行 min-h-10
   const sepH = 1 // Separator h-px
   // 右栏总高对齐截图底衬；两栏扣分隔线后均分（上 ceil / 下 floor）
@@ -411,6 +407,9 @@ export function Compose() {
     hasLeft && original.trim() && english.trim()
       ? wordDiff(original.trim(), english.trim())
       : null
+  // OCR 已出图、尚未出字：两栏空占位，不转圈
+  const ocrPending =
+    !!ocrPreview?.src && !sending && !text.trim() && !english.trim() && !error
   // 单词查中：只显示词卡。有 OCR 截图时绝不能走进这里（会拆掉截图）
   const wordOnly = !!dict && !english.trim() && !ocrPreview?.src
 
@@ -442,8 +441,8 @@ export function Compose() {
             className={cn(
               'overflow-hidden bg-muted p-2',
               ocrPunch
-                ? cn('rounded-l-lg', paneChrome)
-                : 'border-r border-foreground/10',
+                ? cn('rounded-l-lg border-r border-foreground/20', paneChrome)
+                : 'border-r border-foreground/20',
             )}
           >
             <img
@@ -479,7 +478,7 @@ export function Compose() {
       {showOrig ? (
         <div
           className={cn(
-            'relative flex w-[360px] shrink-0 self-stretch overflow-hidden border-r border-foreground/10',
+            'relative flex w-[360px] shrink-0 self-stretch overflow-hidden border-r border-foreground/20',
             ocrPunch && paneChrome,
             ocrPunch && rightTaller && 'rounded-bl-lg',
           )}
@@ -538,7 +537,6 @@ export function Compose() {
         </div>
       ) : null}
 
-      {showRight ? (
       <div
         ref={rightRef}
         className={cn(
@@ -550,6 +548,12 @@ export function Compose() {
       >
         {ocrDictOnly && dict ? (
           <DictCard entry={dict} speakLang={language} />
+        ) : ocrPending ? (
+          <>
+            <div className="overflow-y-auto px-4 py-2" style={topBoxStyle} />
+            <Separator className="bg-foreground/20" />
+            <div className="overflow-y-auto px-4 py-2" style={botBoxStyle} />
+          </>
         ) : (
           <>
             {waitInput ? (
@@ -620,7 +624,7 @@ export function Compose() {
 
             {english.trim() || (sending && !waitInput) ? (
               <>
-                <Separator />
+                <Separator className="bg-foreground/20" />
                 <div className="flex items-start gap-1 overflow-y-auto px-4 py-2" style={botBoxStyle}>
                   <div className="min-w-0 flex-1">
                     {english.trim() ? (
@@ -735,7 +739,6 @@ export function Compose() {
           </>
         ) : null}
       </div>
-      ) : null}
     </div>
     </div>
   )
