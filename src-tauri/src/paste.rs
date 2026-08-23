@@ -1,6 +1,9 @@
 use arboard::Clipboard;
+#[cfg(target_os = "macos")]
 use std::thread;
-use std::time::{Duration, Instant};
+#[cfg(target_os = "macos")]
+use std::time::Instant;
+use std::time::Duration;
 use tauri::{AppHandle, Manager};
 
 #[cfg(not(target_os = "macos"))]
@@ -601,16 +604,16 @@ mod ax {
 mod os {
     use super::Handle;
     use windows_sys::Win32::Foundation::HWND;
-    use windows_sys::Win32::System::Threading::GetCurrentThreadId;
+    use windows_sys::Win32::System::Threading::{AttachThreadInput, GetCurrentThreadId};
     use windows_sys::Win32::UI::WindowsAndMessaging::{
-        AttachThreadInput, BringWindowToTop, GetForegroundWindow, GetWindowThreadProcessId,
-        IsIconic, SetForegroundWindow, ShowWindow, SW_RESTORE,
+        BringWindowToTop, GetForegroundWindow, GetWindowThreadProcessId, IsIconic,
+        SetForegroundWindow, ShowWindow, SW_RESTORE,
     };
 
     pub fn frontmost() -> Option<Handle> {
         unsafe {
             let hwnd = GetForegroundWindow();
-            if hwnd == 0 {
+            if hwnd.is_null() {
                 return None;
             }
             let mut pid = 0u32;
@@ -625,7 +628,7 @@ mod os {
     pub fn activate(hwnd: Handle) {
         unsafe {
             let hwnd = hwnd as HWND;
-            if hwnd == 0 {
+            if hwnd.is_null() {
                 return;
             }
             if IsIconic(hwnd) != 0 {
@@ -890,7 +893,7 @@ fn win_caret_rect() -> Option<InputRect> {
     unsafe {
         let mut info: GUITHREADINFO = std::mem::zeroed();
         info.cbSize = std::mem::size_of::<GUITHREADINFO>() as u32;
-        if GetGUIThreadInfo(0, &mut info) == 0 || info.hwndCaret == 0 {
+        if GetGUIThreadInfo(0, &mut info) == 0 || info.hwndCaret.is_null() {
             return None;
         }
         let hwnd = info.hwndCaret as HWND;
