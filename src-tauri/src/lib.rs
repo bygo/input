@@ -98,6 +98,8 @@ pub fn run() {
             if let Some(win) = app.get_webview_window("main") {
                 warmup_window(&win);
             }
+            #[cfg(any(target_os = "macos", target_os = "windows"))]
+            dict::warm_tts();
             let handle = app.handle().clone();
             tauri::async_runtime::spawn(async move {
                 local::boot(handle).await;
