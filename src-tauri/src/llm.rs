@@ -5,7 +5,7 @@ use tauri::{AppHandle, Emitter};
 
 pub use crate::llm_parse::Analysis;
 use crate::llm_parse::{
-    is_empty_result_err, split_translate_chunks, take_candidates, try_parse, try_parse_loose,
+    is_empty_result_err, split_translate_chunks, try_parse, try_parse_loose,
 };
 use crate::llm_prompt::{select_prompt, system_prompt, user_message};
 
@@ -151,46 +151,15 @@ async fn analyze_one_attempt(
         if crate::local::mt_ready().await {
             match crate::local::translate(text, source_lang, into).await {
                 Ok(raw) => {
-                    // MT 偶发只返回首行：若行数明显少于原文，视为失败并走 LLM 兜底。
-                    let src_n = text.lines().map(str::trim).filter(|l| !l.is_empty()).count();
-                    let out_n = raw.lines().map(str::trim).filter(|l| !l.is_empty()).count();
-                    let truncated = src_n > 1 && out_n > 0 && out_n < src_n;
-                    if !truncated {
-                        let sentences = take_candidates(vec![raw.clone()], text, into);
-                        if !sentences.is_empty() {
-                            return Ok(Analysis {
-                                sentences,
-                                source: "local-mt".into(),
-                            });
-                        }
-                        // 选中翻译：模型有内容但被混排过滤误杀时，直接用原文译文，避免「空」。
-                        if select && !raw.trim().is_empty() {
-                            log_parse_fail(
-                                "mt_accept_mixed",
-                                text,
-                                into,
-                                select,
-                                "local-mt",
-                                &raw,
-                            );
-                            return Ok(Analysis {
-                                sentences: vec![raw.trim().to_string()],
-                                source: "local-mt".into(),
-                            });
-                        }
+                    // TranslateGemma：原样上屏，不做混排/截断过滤。
+                    let out = raw.trim().to_string();
+                    if !out.is_empty() {
+                        return Ok(Analysis {
+                            sentences: vec![out],
+                            source: "local-mt".into(),
+                        });
                     }
-                    log_parse_fail(
-                        if truncated {
-                            "mt_truncated_lines"
-                        } else {
-                            "mt_empty_or_mixed"
-                        },
-                        text,
-                        into,
-                        select,
-                        "local-mt",
-                        &raw,
-                    );
+                    log_parse_fail("mt_empty", text, into, select, "local-mt", &raw);
                 }
                 Err(e) => {
                     log_parse_fail("mt_error", text, into, select, "local-mt", &e);
@@ -208,38 +177,28 @@ async fn analyze_one_attempt(
         system_prompt(into)
     };
     let user = user_message(text, into, select);
+    eprintln!(
+        "\n========== [LLM] select={select} into={into} mt_source={mt_source:?} ==========\n--- system ---\n{system}\n--- user ---\n{user}\n========== [/LLM prompt] ==========\n"
+    );
 
     // Compose (and select fallback): local LLM, then cloud.
     // Empty `{}` / mixed-script output must not block cloud fallback.
     if crate::local::ready().await {
         match crate::local::chat(&system, &user).await {
             Ok(raw) => {
+                eprintln!("\n========== [LLM local result] ==========\n{raw}\n========== [/LLM local result] ==========\n");
                 if let Some(sentences) = try_parse(&raw, text, into) {
                     return Ok(Analysis {
                         sentences,
                         source: "local".into(),
                     });
                 }
-                if select {
-                    if let Some(sentences) = try_parse_loose(&raw, text) {
-                        log_parse_fail(
-                            "local_accept_mixed",
-                            text,
-                            into,
-                            select,
-                            "local",
-                            &raw,
-                        );
-                        return Ok(Analysis {
-                            sentences,
-                            source: "local".into(),
-                        });
-                    }
-                }
                 let repair = format!(
                     "上一次输出不合格。请把下面整段改写成纯正{into}，保留换行；禁止残留源语言字符（含人名须音译）。只输出 JSON：{{\"sentences\":[\"...\"]}}。\n不合格译文：\n{raw}"
                 );
+                eprintln!("\n========== [LLM repair user] ==========\n{repair}\n========== [/LLM repair user] ==========\n");
                 if let Ok(raw2) = crate::local::chat(&system, &repair).await {
+                    eprintln!("\n========== [LLM local repair result] ==========\n{raw2}\n========== [/LLM local repair result] ==========\n");
                     if let Some(sentences) = try_parse(&raw2, text, into) {
                         return Ok(Analysis {
                             sentences,
@@ -247,9 +206,9 @@ async fn analyze_one_attempt(
                         });
                     }
                     if select {
-                        if let Some(sentences) = try_parse_loose(&raw2, text) {
+                        if let Some(sentences) = try_parse_loose(&raw2, text, into) {
                             log_parse_fail(
-                                "local_repair_accept_mixed",
+                                "local_repair_accept_loose",
                                 text,
                                 into,
                                 select,
@@ -277,6 +236,7 @@ async fn analyze_one_attempt(
     }
 
     let raw = chat_with_system(&system, &user).await?;
+    eprintln!("\n========== [LLM cloud result] ==========\n{raw}\n========== [/LLM cloud result] ==========\n");
     if let Some(sentences) = try_parse(&raw, text, into) {
         return Ok(Analysis {
             sentences,
@@ -284,9 +244,9 @@ async fn analyze_one_attempt(
         });
     }
     if select {
-        if let Some(sentences) = try_parse_loose(&raw, text) {
+        if let Some(sentences) = try_parse_loose(&raw, text, into) {
             log_parse_fail(
-                "cloud_accept_mixed",
+                "cloud_accept_loose",
                 text,
                 into,
                 select,
@@ -364,14 +324,13 @@ pub async fn analyze(
         resolve_into(into)
     };
 
-    // TranslateGemma when we know it's a cross-language job:
-    // - select entry: always translate
-    // - compose entry: only if detected source ≠ learning language
-    let mt_source = if select {
-        Some(crate::lang::detect(&text).unwrap_or("英语"))
+    // TranslateGemma：select 只用 is_pure_english 分流，禁止 detect。
+    let mt_source_owned: Option<String> = if select {
+        Some(crate::lang::mt_source_for_selection(&text))
     } else {
-        crate::lang::compose_mt_source(&text, &into)
+        crate::lang::compose_mt_source(&text, &into).map(|s| s.to_string())
     };
+    let mt_source = mt_source_owned.as_deref();
     let translating = select || mt_source.is_some();
     let chunks = if translating {
         split_translate_chunks(&text, 200)
@@ -380,7 +339,7 @@ pub async fn analyze(
     };
     let total = chunks.len();
     if total <= 1 {
-        let one = analyze_one(&text, &into, select, mt_source.as_deref()).await?;
+        let one = analyze_one(&text, &into, select, mt_source).await?;
         emit_analyze_partial(&app, req_id, 0, 1, one.sentences.first().map(|s| s.as_str()).unwrap_or(""), &one.source);
         return Ok(one);
     }
@@ -393,7 +352,7 @@ pub async fn analyze(
             emit_analyze_partial(&app, req_id, index, total, &acc, if source.is_empty() { "local-mt" } else { &source });
             continue;
         }
-        let part = analyze_one(chunk, &into, select, mt_source.as_deref()).await?;
+        let part = analyze_one(chunk, &into, select, mt_source).await?;
         let piece = part.sentences.first().map(|s| s.as_str()).unwrap_or("").to_string();
         acc.push_str(&piece);
         if chunk.ends_with('\n') && !piece.ends_with('\n') {

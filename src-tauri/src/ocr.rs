@@ -5,12 +5,11 @@ use std::path::{Path, PathBuf};
 #[cfg(target_os = "macos")]
 use std::process::Command;
 
-/// Capture a screen rect to a temp JPEG (CSS/points, top-left origin, y down).
-/// Fast path: CGWindowListCreateImage + ImageIO (no per-pixel copy / base64).
+/// 全屏定格：CSS points + Nominal（快，与 webview 1:1）。
 pub fn capture_screen_rect(x: f64, y: f64, w: f64, h: f64) -> Result<PathBuf, String> {
     #[cfg(target_os = "macos")]
     {
-        macos::capture_screen_rect(x, y, w, h)
+        macos::capture_screen_rect(x, y, w, h, false)
     }
     #[cfg(not(target_os = "macos"))]
     {
@@ -19,32 +18,20 @@ pub fn capture_screen_rect(x: f64, y: f64, w: f64, h: f64) -> Result<PathBuf, St
     }
 }
 
-/// Crop an image to `x/y/w/h` in pixel space; writes a PNG for OCR/preview.
-pub fn crop_image_to_file(src: &Path, x: u32, y: u32, w: u32, h: u32) -> Result<PathBuf, String> {
-    if w < 2 || h < 2 {
-        return Err("选区太小".into());
+/// 选区重截：CSS points + BestResolution（小区域 Retina，预览清晰）。
+pub fn capture_region_retina(x: f64, y: f64, w: f64, h: f64) -> Result<PathBuf, String> {
+    #[cfg(target_os = "macos")]
+    {
+        macos::capture_screen_rect(x, y, w, h, true)
     }
-    let img = image::open(src)
-        .map_err(|e| format!("读取定格图失败: {e}"))?
-        .to_rgba8();
-    let iw = img.width();
-    let ih = img.height();
-    if iw == 0 || ih == 0 {
-        return Err("定格图为空".into());
+    #[cfg(not(target_os = "macos"))]
+    {
+        let _ = (x, y, w, h);
+        Err("截屏取词目前仅支持 macOS".into())
     }
-    let x = x.min(iw.saturating_sub(1));
-    let y = y.min(ih.saturating_sub(1));
-    let w = w.min(iw.saturating_sub(x)).max(1);
-    let h = h.min(ih.saturating_sub(y)).max(1);
-    let cropped = image::imageops::crop_imm(&img, x, y, w, h).to_image();
-    let out = tmp_path("ocr-crop", "png")?;
-    cropped
-        .save(&out)
-        .map_err(|e| format!("保存选区失败: {e}"))?;
-    Ok(out)
 }
 
-/// OCR an image file.
+/// OCR an image file → plain text.
 pub fn recognize_image(path: &Path) -> Result<String, String> {
     #[cfg(target_os = "macos")]
     {
@@ -90,16 +77,6 @@ pub fn tmp_path(prefix: &str, ext: &str) -> Result<PathBuf, String> {
     )))
 }
 
-pub fn read_data_url(path: &Path) -> Result<String, String> {
-    let bytes = fs::read(path).map_err(|e| e.to_string())?;
-    use base64::{engine::general_purpose::STANDARD, Engine};
-    let mime = match path.extension().and_then(|e| e.to_str()) {
-        Some("jpg") | Some("jpeg") => "image/jpeg",
-        _ => "image/png",
-    };
-    Ok(format!("data:{mime};base64,{}", STANDARD.encode(bytes)))
-}
-
 #[cfg(target_os = "macos")]
 mod macos {
     use super::*;
@@ -110,8 +87,8 @@ mod macos {
     use core_foundation::string::{CFString, CFStringRef};
     use core_foundation::url::{kCFURLPOSIXPathStyle, CFURL, CFURLRef};
     use core_graphics::display::{
-        kCGNullWindowID, kCGWindowImageNominalResolution, kCGWindowListOptionOnScreenOnly,
-        CGPoint, CGRect, CGSize,
+        kCGNullWindowID, kCGWindowImageBestResolution, kCGWindowImageNominalResolution,
+        kCGWindowListOptionOnScreenOnly, CGPoint, CGRect, CGSize,
     };
     use core_graphics::image::CGImage;
     use foreign_types::ForeignType;
@@ -165,20 +142,26 @@ mod macos {
         )
     }
 
-    pub fn capture_screen_rect(x: f64, y: f64, w: f64, h: f64) -> Result<PathBuf, String> {
+    pub fn capture_screen_rect(
+        x: f64,
+        y: f64,
+        w: f64,
+        h: f64,
+        retina: bool,
+    ) -> Result<PathBuf, String> {
         ensure_screen_permission()?;
         if w < 2.0 || h < 2.0 {
             return Err("选区太小".into());
         }
         let rect = CGRect::new(&CGPoint::new(x, y), &CGSize::new(w, h));
-        // Nominal resolution = CSS points size (matches our fullscreen webview).
+        // 全屏定格用 Nominal（快）；选区重截用 Best（清晰且区域小）。
+        let opt = if retina {
+            kCGWindowImageBestResolution
+        } else {
+            kCGWindowImageNominalResolution
+        };
         let image_ptr = unsafe {
-            CGWindowListCreateImage(
-                rect,
-                kCGWindowListOptionOnScreenOnly,
-                kCGNullWindowID,
-                kCGWindowImageNominalResolution,
-            )
+            CGWindowListCreateImage(rect, kCGWindowListOptionOnScreenOnly, kCGNullWindowID, opt)
         };
         if image_ptr.is_null() {
             super::open_screen_recording_settings();
@@ -188,9 +171,9 @@ mod macos {
             );
         }
         let image = unsafe { CGImage::from_ptr(image_ptr) };
-        let path = super::tmp_path("ocr-freeze", "jpg")?;
-        // Native ImageIO encode — orders of magnitude faster than per-pixel PNG.
-        save_jpeg(&image, &path, 0.72)?;
+        let path = super::tmp_path(if retina { "ocr-crop" } else { "ocr-freeze" }, "jpg")?;
+        // 定格略压；选区预览稍高。Native ImageIO，远快于逐像素 PNG。
+        save_jpeg(&image, &path, if retina { 0.9 } else { 0.8 })?;
         Ok(path)
     }
 

@@ -144,14 +144,28 @@ pub(crate) fn try_parse(raw: &str, original: &str, into: &str) -> Option<Vec<Str
     }
 }
 
-/// 选中翻译兜底：不过滤混排，避免代码标识符把整段译文判空。
-pub(crate) fn try_parse_loose(raw: &str, original: &str) -> Option<Vec<String>> {
+/// 选中翻译兜底：允许代码标识符等 fits_target 误杀，但拒绝明显源语言整段。
+pub(crate) fn try_parse_loose(raw: &str, original: &str, into: &str) -> Option<Vec<String>> {
     let a = extract_json(raw).ok()?;
     let merged = merge_linewise(original, a.sentences);
+    let strict = take_candidates(merged.clone(), original, into);
+    if !strict.is_empty() {
+        return Some(strict);
+    }
     let parts: Vec<String> = merged
         .into_iter()
         .map(|s| s.trim().to_string())
         .filter(|s| !s.is_empty())
+        .filter(|s| !is_instruction_leak(s))
+        .filter(|s| {
+            if into.contains("英语") || into.contains("英文") {
+                !crate::lang::looks_like(s, "中文")
+            } else if into.contains("中文") {
+                true
+            } else {
+                crate::lang::fits_target(s, into)
+            }
+        })
         .collect();
     if parts.is_empty() {
         None
@@ -235,6 +249,16 @@ pub(crate) fn register_key(s: &str) -> String {
         .join(" ")
 }
 
+/// 模型把 repair/系统提示原样回灌时的特征（尤其中文目标下易被 loose 误收）。
+fn is_instruction_leak(s: &str) -> bool {
+    s.contains("上一次输出不合格")
+        || s.contains("不合格译文")
+        || s.contains("请把下面整段改写")
+        || s.contains("只输出 JSON")
+        || s.contains("{\"sentences\"")
+        || s.contains("禁止残留源语言")
+}
+
 pub(crate) fn take_candidates(raw: Vec<String>, original: &str, lang: &str) -> Vec<String> {
     let orig = original.trim();
     // 原文已是目标语时：同词干候选保留用户用词（防 buy→purchase）；语法已改则不要把错句硬插第一位。
@@ -251,6 +275,9 @@ pub(crate) fn take_candidates(raw: Vec<String>, original: &str, lang: &str) -> V
     for s in raw {
         let t = s.trim().to_string();
         if t.is_empty() || !seen_exact.insert(t.clone()) {
+            continue;
+        }
+        if is_instruction_leak(&t) {
             continue;
         }
         // Drop mixed-language leftovers (e.g. Chinese with "overnight" kept).
@@ -401,6 +428,14 @@ mod tests {
         assert!(try_parse("{}", "hello", "英语").is_none());
         assert!(try_parse(r#"{"sentences":[]}"#, "hello", "英语").is_none());
         assert!(try_parse(r#"{"sentences":["Hi."]}"#, "hello", "英语").is_some());
+    }
+
+    #[test]
+    fn rejects_repair_instruction_leak() {
+        let leak = "上一次输出不合格。请把下面整段改写成纯正中文，保留换行；禁止残留源语言字符（含人名须音译）。只输出 JSON：{\"sentences\":[\"...\"]}。";
+        let raw = format!(r#"{{"sentences":[{}]}}"#, serde_json::to_string(leak).unwrap());
+        assert!(try_parse(&raw, "Hello world", "中文").is_none());
+        assert!(try_parse_loose(&raw, "Hello world", "中文").is_none());
     }
 
     #[test]

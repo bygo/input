@@ -187,7 +187,11 @@ pub fn dict_lookup(app: AppHandle, word: String) -> Result<Option<DictEntry>, St
         if let Some(e) = query_exact(conn, &key)? {
             return Ok(Some(e));
         }
-        query_via_exchange(conn, &key)
+        // exchange 命中的是原型词条；标题保留查询形态（runs→仍显示 runs）
+        Ok(query_via_exchange(conn, &key)?.map(|mut e| {
+            e.word = key.clone();
+            e
+        }))
     })
 }
 
@@ -198,12 +202,47 @@ mod tts {
     use objc2::runtime::{AnyClass, AnyObject};
     use std::cell::RefCell;
     use std::ffi::CString;
+    use std::path::Path;
+    use std::process::{Child, Command};
 
     #[link(name = "AppKit", kind = "framework")]
     extern "C" {}
 
     thread_local! {
         static SYNTH: RefCell<Option<(*mut AnyObject, String)>> = const { RefCell::new(None) };
+        static AFPLAY: RefCell<Option<Child>> = const { RefCell::new(None) };
+    }
+
+    pub fn stop_afplay() {
+        AFPLAY.with(|slot| {
+            if let Some(mut child) = slot.borrow_mut().take() {
+                let _ = child.kill();
+                let _ = child.wait();
+            }
+        });
+    }
+
+    fn afplay_playing() -> bool {
+        AFPLAY.with(|slot| {
+            let mut g = slot.borrow_mut();
+            match g.as_mut() {
+                Some(child) => match child.try_wait() {
+                    Ok(None) => true,
+                    Ok(Some(_)) | Err(_) => {
+                        *g = None;
+                        false
+                    }
+                },
+                None => false,
+            }
+        })
+    }
+
+    pub fn play_afplay(path: &Path) {
+        stop_afplay();
+        if let Ok(child) = Command::new("afplay").arg(path).spawn() {
+            AFPLAY.with(|slot| *slot.borrow_mut() = Some(child));
+        }
     }
 
     fn ns_string(s: &str) -> *mut AnyObject {
@@ -267,6 +306,19 @@ mod tts {
                 }
             }
         });
+    }
+
+    pub fn is_speaking() -> bool {
+        let synth = SYNTH.with(|slot| {
+            if let Some((p, _)) = slot.borrow().as_ref() {
+                if !p.is_null() {
+                    let on: bool = unsafe { msg_send![*p, isSpeaking] };
+                    return on;
+                }
+            }
+            false
+        });
+        synth || afplay_playing()
     }
 
     pub fn speak(word: &str, voice: Option<&str>) {
@@ -345,6 +397,17 @@ mod tts {
         }
         Ok(())
     }
+
+    pub fn stop() -> Result<(), String> {
+        let v = voice()?;
+        let empty: Vec<u16> = vec![0];
+        let flags = SPF_PURGEBEFORESPEAK.0 as u32;
+        unsafe {
+            v.Speak(PCWSTR(empty.as_ptr()), flags, None)
+                .map_err(|e| format!("停止发音失败: {e}"))?;
+        }
+        Ok(())
+    }
 }
 
 #[cfg(target_os = "windows")]
@@ -378,11 +441,9 @@ pub fn dict_speak(app: AppHandle, word: String, lang: Option<String>) -> Result<
         let cache2 = cache.clone();
         app.run_on_main_thread(move || {
             tts::stop();
-            let _ = std::process::Command::new("killall")
-                .args(["-q", "afplay"])
-                .status();
+            tts::stop_afplay();
             if cache2.is_file() {
-                let _ = std::process::Command::new("afplay").arg(&cache2).spawn();
+                tts::play_afplay(&cache2);
             } else {
                 tts::speak(&w2, voice2.as_deref());
             }
@@ -435,6 +496,47 @@ pub fn dict_speak(app: AppHandle, word: String, lang: Option<String>) -> Result<
     }
 }
 
+#[tauri::command]
+pub fn dict_stop(app: AppHandle) -> Result<(), String> {
+    #[cfg(target_os = "macos")]
+    {
+        app.run_on_main_thread(|| {
+            tts::stop();
+            tts::stop_afplay();
+        })
+        .map_err(|e| format!("停止发音失败: {e}"))?;
+        return Ok(());
+    }
+    #[cfg(target_os = "windows")]
+    {
+        let _ = app;
+        return tts::stop();
+    }
+    #[cfg(not(any(target_os = "macos", target_os = "windows")))]
+    {
+        let _ = app;
+        Ok(())
+    }
+}
+
+#[tauri::command]
+pub fn dict_speaking(app: AppHandle) -> Result<bool, String> {
+    #[cfg(target_os = "macos")]
+    {
+        let (tx, rx) = std::sync::mpsc::channel();
+        app.run_on_main_thread(move || {
+            let _ = tx.send(tts::is_speaking());
+        })
+        .map_err(|e| format!("查询发音状态失败: {e}"))?;
+        return rx.recv().map_err(|e| e.to_string());
+    }
+    #[cfg(not(target_os = "macos"))]
+    {
+        let _ = app;
+        Ok(false)
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -470,6 +572,25 @@ mod tests {
         let e = query_exact(&conn, "apple").unwrap().expect("apple");
         assert_eq!(e.word.to_lowercase(), "apple");
         assert!(e.phonetic.is_some());
+        assert!(!e.senses.is_empty());
+    }
+
+    #[test]
+    fn exchange_keeps_surface_form() {
+        let p = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("resources/ecdict.db");
+        if !p.is_file() {
+            return;
+        }
+        let conn = Connection::open_with_flags(
+            &p,
+            rusqlite::OpenFlags::SQLITE_OPEN_READ_ONLY,
+        )
+        .unwrap();
+        assert!(query_exact(&conn, "runs").unwrap().is_none());
+        let mut e = query_via_exchange(&conn, "runs").unwrap().expect("runs→run");
+        assert_eq!(e.word.to_lowercase(), "run");
+        e.word = "runs".into();
+        assert_eq!(e.word, "runs");
         assert!(!e.senses.is_empty());
     }
 }

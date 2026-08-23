@@ -2,10 +2,11 @@ import { useAtom } from 'jotai'
 import { useEffect, useRef, useState, type MutableRefObject } from 'react'
 import { flushSync } from 'react-dom'
 import { convertFileSrc, invoke } from '@tauri-apps/api/core'
-import { LogicalSize } from '@tauri-apps/api/dpi'
+import { LogicalSize, PhysicalPosition } from '@tauri-apps/api/dpi'
 import { listen } from '@tauri-apps/api/event'
 import { getCurrentWindow } from '@tauri-apps/api/window'
 import {
+  dictAtom,
   errorAtom,
   ocrPreviewAtom,
   resultAtom,
@@ -13,32 +14,32 @@ import {
   textAtom,
   viewAtom,
 } from './atoms'
-import { cn } from '@/lib/utils'
 import { OcrPick } from './OcrPick'
-import { OcrTranslate } from './OcrTranslate'
 
 const inTauri = () => typeof window !== 'undefined' && '__TAURI_INTERNALS__' in window
 
-/** OCR 会话沙盒：始终挂载以接收事件；选区 → 识别 → 结果。 */
+/** OCR 会话沙盒：始终挂载以接收事件；选区 → 识别 → Compose 左图右文。 */
 export function OcrShell({
   onBlockResize,
   onPickMode,
   sizeFloorRef,
+  ocrPinRef,
 }: {
   onBlockResize: (block: boolean) => void
   onPickMode: (pick: boolean) => void
   sizeFloorRef: MutableRefObject<{ w: number; h: number } | null>
+  ocrPinRef: MutableRefObject<{ x: number; y: number } | null>
 }) {
-  const [view, setView] = useAtom(viewAtom)
-  const [ocrPreview, setOcrPreview] = useAtom(ocrPreviewAtom)
+  const [, setView] = useAtom(viewAtom)
+  const [, setOcrPreview] = useAtom(ocrPreviewAtom)
   const [, setSending] = useAtom(sendingAtom)
   const [, setText] = useAtom(textAtom)
   const [, setError] = useAtom(errorAtom)
   const [, setResult] = useAtom(resultAtom)
+  const [, setDict] = useAtom(dictAtom)
 
   const [ocrPick, setOcrPick] = useState(false)
   const [ocrFreeze, setOcrFreeze] = useState('')
-  const [ocrSeedText, setOcrSeedText] = useState('')
 
   const session = useRef(0)
   const flowActive = useRef(false)
@@ -71,8 +72,8 @@ export function OcrShell({
         if (!alive || sid !== session.current) return
         flushSync(() => {
           sizeFloorRef.current = null
+          ocrPinRef.current = null
           setOcrPreview(null)
-          setOcrSeedText('')
           setResult(null)
           setError('')
           setText('')
@@ -81,12 +82,8 @@ export function OcrShell({
           setView('ocr')
           setOcrPick(true)
         })
-        requestAnimationFrame(() => {
-          requestAnimationFrame(() => {
-            if (!alive || sid !== session.current) return
-            void invoke('ocr_show_pick').catch(() => {})
-          })
-        })
+        if (!alive || sid !== session.current) return
+        void invoke('ocr_show_pick').catch(() => {})
       })()
     })
 
@@ -99,14 +96,15 @@ export function OcrShell({
         setOcrPick(false)
         setOcrFreeze('')
         setOcrPreview(null)
-        setOcrSeedText('')
+        ocrPinRef.current = null
       })
     })
 
     const unBusy = listen<{ preview?: string }>('ocr-recognizing', (e) => {
       if (!alive) return
-      const src = e.payload?.preview?.trim() ?? ''
-      if (!src) return
+      const raw = e.payload?.preview?.trim() ?? ''
+      if (!raw) return
+      const src = raw.startsWith('data:') ? raw : convertFileSrc(raw)
       onBlockResize(false)
       flowActive.current = true
       flushSync(() => {
@@ -117,17 +115,27 @@ export function OcrShell({
         }))
         setOcrPick(false)
         setOcrFreeze('')
-        setSending(true)
-        setView('ocr')
+        setDict(null)
+        setText('')
+        setResult(null)
+        setError('')
+        // 等 ocr-text 再 loading，否则不知落在母语栏还是英语栏
+        setSending(false)
+        setView('compose')
       })
-      void invoke('reveal').catch(() => {})
-    })
-
-    const unShown = listen<{ selected?: string }>('overlay-shown', (e) => {
-      if (!alive) return
-      const selected = e.payload?.selected?.trim() ?? ''
-      if (!flowActive.current || !selected) return
-      flushSync(() => setOcrSeedText(selected))
+      void (async () => {
+        try {
+          const win = getCurrentWindow()
+          await invoke('reveal')
+          // reveal 会跟鼠标；钉回选区原位
+          const p = ocrPinRef.current
+          if (p) await win.setPosition(new PhysicalPosition(p.x, p.y))
+          // 确保焦点在卡片上，否则点外侧不触发失焦关闭
+          await win.setFocus()
+        } catch {
+          /* ignore */
+        }
+      })()
     })
 
     const unHidden = listen('overlay-hidden', () => {
@@ -139,7 +147,7 @@ export function OcrShell({
         setOcrPick(false)
         setOcrFreeze('')
         setOcrPreview(null)
-        setOcrSeedText('')
+        ocrPinRef.current = null
       })
     })
 
@@ -148,13 +156,14 @@ export function OcrShell({
       unStart.then((f) => f())
       unEnd.then((f) => f())
       unBusy.then((f) => f())
-      unShown.then((f) => f())
       unHidden.then((f) => f())
     }
   }, [
     onBlockResize,
     sizeFloorRef,
+    ocrPinRef,
     setOcrPreview,
+    setDict,
     setResult,
     setError,
     setText,
@@ -170,34 +179,35 @@ export function OcrShell({
           session.current += 1
           flowActive.current = false
           onBlockResize(false)
+          ocrPinRef.current = null
           setOcrPick(false)
           setOcrFreeze('')
           setOcrPreview(null)
-          setOcrSeedText('')
         }}
         onFinishSelect={(crop) => {
           const sid = session.current
-          const maxImgH = Math.max(
-            1,
-            Math.floor((window.screen.height || window.innerHeight || 800) * 0.5),
-          )
-          let imgW = crop.w
-          let imgH = crop.h
-          if (imgH > maxImgH && imgH > 0) {
-            const s = maxImgH / imgH
-            imgH = maxImgH
-            imgW = Math.max(1, Math.round(crop.w * s))
-          }
-          const w = Math.max(440, imgW) + 24
-          const h = imgH + 40 + 40 + 24
+          // 1:1 CSS 尺寸才能与选区完全重叠（不缩小）
+          const imgW = crop.w
+          const imgH = crop.h
+          const imgPad = 8 // 截图四周底衬，与 Compose 一致
+          // 识别中只露截图，不预留文栏；出字后 ResizeObserver 再撑宽
+          const w = imgW + imgPad * 2 + 24
+          const h = Math.max(imgH + imgPad * 2, 80) + 24
           sizeFloorRef.current = { w, h }
           onBlockResize(true)
           flowActive.current = true
           void (async () => {
             try {
               const win = getCurrentWindow()
+              const scale = await win.scaleFactor()
+              const outer = await win.outerPosition()
+              const pad = 12 + imgPad // App p-3 + 截图底衬
+              const px = Math.round(outer.x + (crop.x - pad) * scale)
+              const py = Math.round(outer.y + (crop.y - pad) * scale)
+              ocrPinRef.current = { x: px, y: py }
               await win.hide()
               await win.setSize(new LogicalSize(w, h))
+              await win.setPosition(new PhysicalPosition(px, py))
             } catch {
               /* ignore */
             }
@@ -214,12 +224,13 @@ export function OcrShell({
                 h: imgH,
                 src: prev?.src || '',
               }))
-              setOcrSeedText('')
+              setDict(null)
               setText('')
               setResult(null)
               setError('')
-              setSending(true)
-              setView('ocr')
+              // 识别完成（ocr-text）后再 loading
+              setSending(false)
+              setView('compose')
             })
             onBlockResize(false)
           })()
@@ -228,19 +239,5 @@ export function OcrShell({
     )
   }
 
-  if (view !== 'ocr') return null
-  if (!ocrPreview?.src) {
-    return <div className="h-0 w-0 overflow-hidden" aria-hidden />
-  }
-
-  return (
-    <div
-      className={cn(
-        'min-w-[440px] rounded-lg bg-card text-card-foreground ring-1 ring-foreground/10',
-        'shadow-[0_1px_2px_rgb(0_0_0/0.16)] dark:shadow-[0_1px_2px_rgb(0_0_0/0.55)]',
-      )}
-    >
-      <OcrTranslate seedText={ocrSeedText} />
-    </div>
-  )
+  return null
 }

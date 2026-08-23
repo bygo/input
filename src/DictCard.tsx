@@ -3,10 +3,6 @@ import { useEffect } from 'react'
 import { dictSpeak, type DictEntry } from './api/dict'
 import { cn } from '@/lib/utils'
 
-/** 同一词短时间内只自动播一次（扛住 StrictMode 双挂载）。 */
-let lastAutoSpeak = ''
-let lastAutoAt = 0
-
 export function DictCard({
   entry,
   speakLang,
@@ -17,16 +13,16 @@ export function DictCard({
   useEffect(() => {
     const w = entry.word.trim()
     if (!w) return
-    const now = Date.now()
-    if (lastAutoSpeak === w && now - lastAutoAt < 1500) return
-    lastAutoSpeak = w
-    lastAutoAt = now
-    void dictSpeak(w, speakLang).catch(() => {})
+    // 延迟一拍：StrictMode 先挂再卸时 cleanup 会清掉，避免双播。
+    const t = window.setTimeout(() => {
+      void dictSpeak(w, speakLang).catch(() => {})
+    }, 0)
+    return () => clearTimeout(t)
   }, [entry.word, speakLang])
 
   return (
     <div className="px-4 py-2">
-      <div className="flex items-baseline gap-2">
+      <div className="flex items-center gap-2">
         <span className="text-[15px] font-medium leading-6">{entry.word}</span>
         {entry.phonetic ? (
           <span className="text-[13px] leading-5 text-muted-foreground">{entry.phonetic}</span>

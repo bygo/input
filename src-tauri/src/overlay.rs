@@ -5,8 +5,8 @@ use tauri::{Emitter, LogicalSize, Manager, PhysicalPosition};
 
 use crate::paste;
 
-/// Compose panel 440 + shadow padding (p-3 × 2).
-pub const OVERLAY_W: f64 = 464.0;
+/// Compose panel 360 + shadow padding (p-3 × 2).
+pub const OVERLAY_W: f64 = 384.0;
 /// Input + separator + one-line result + shadow padding (p-3 × 2).
 pub const OVERLAY_H: f64 = 105.0;
 const PARK_X: f64 = -16384.0;
@@ -30,8 +30,14 @@ pub struct OverlayOpen(pub Mutex<bool>);
 pub struct ShortcutCapture(pub Mutex<bool>);
 pub struct IgnoreUnfocusUntil(pub Mutex<Option<Instant>>);
 pub struct OcrPicking(pub Mutex<bool>);
-/// Path to the WeChat-style freeze-frame PNG for the current OCR pick session.
-pub struct OcrFreeze(pub Mutex<Option<PathBuf>>);
+/// 定格图 + 屏幕原点（CSS points），供框选坐标映射回屏幕。
+pub struct OcrFreezeFrame {
+    pub path: PathBuf,
+    pub origin_x: f64,
+    pub origin_y: f64,
+}
+
+pub struct OcrFreeze(pub Mutex<Option<OcrFreezeFrame>>);
 
 pub enum OverlayKind {
     Settings,
@@ -65,7 +71,25 @@ pub fn set_overlay_open(app: &tauri::AppHandle, open: bool) {
 
 pub fn arm_ignore_unfocus(app: &tauri::AppHandle) {
     if let Some(s) = app.try_state::<IgnoreUnfocusUntil>() {
+        // 超时仅兜底；主窗重新获焦时 clear_ignore_unfocus 会提前撤防。
         *s.0.lock().unwrap() = Some(Instant::now() + Duration::from_millis(500));
+    }
+}
+
+/// 主窗已获焦：把剩余保护窗缩短到 80ms，吸收紧随其后的虚假失焦。
+pub fn clear_ignore_unfocus(app: &tauri::AppHandle) {
+    if let Some(s) = app.try_state::<IgnoreUnfocusUntil>() {
+        let mut g = s.0.lock().unwrap();
+        if g.is_some() {
+            *g = Some(Instant::now() + Duration::from_millis(80));
+        }
+    }
+}
+
+/// 面板已在前台时撤掉保护，避免「先点卡片再点外侧」才能关。
+pub fn disarm_ignore_unfocus(app: &tauri::AppHandle) {
+    if let Some(s) = app.try_state::<IgnoreUnfocusUntil>() {
+        *s.0.lock().unwrap() = None;
     }
 }
 
@@ -92,17 +116,26 @@ pub fn ocr_picking(app: &tauri::AppHandle) -> bool {
         .is_some_and(|s| *s.0.lock().unwrap())
 }
 
-pub fn take_ocr_freeze(app: &tauri::AppHandle) -> Option<PathBuf> {
+pub fn take_ocr_freeze(app: &tauri::AppHandle) -> Option<OcrFreezeFrame> {
     app.try_state::<OcrFreeze>()
         .and_then(|s| s.0.lock().unwrap().take())
 }
 
-pub fn set_ocr_freeze(app: &tauri::AppHandle, path: Option<PathBuf>) {
+pub fn ocr_freeze_origin(app: &tauri::AppHandle) -> Option<(f64, f64)> {
+    app.try_state::<OcrFreeze>().and_then(|s| {
+        s.0.lock()
+            .unwrap()
+            .as_ref()
+            .map(|f| (f.origin_x, f.origin_y))
+    })
+}
+
+pub fn set_ocr_freeze(app: &tauri::AppHandle, frame: Option<OcrFreezeFrame>) {
     if let Some(prev) = take_ocr_freeze(app) {
-        let _ = std::fs::remove_file(prev);
+        let _ = std::fs::remove_file(prev.path);
     }
     if let Some(s) = app.try_state::<OcrFreeze>() {
-        *s.0.lock().unwrap() = path;
+        *s.0.lock().unwrap() = frame;
     }
 }
 

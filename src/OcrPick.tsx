@@ -11,8 +11,8 @@ export function OcrPick({
   /** WeChat-style frozen screenshot (asset URL). */
   freeze: string
   onCancel: () => void
-  /** Leave freeze mask and reserve final (crop+input) size. */
-  onFinishSelect: (crop: { w: number; h: number }) => void
+  /** CSS 选区（相对定格窗）；结果窗据此钉在原位置。 */
+  onFinishSelect: (crop: { x: number; y: number; w: number; h: number }) => void
 }) {
   const [origin, setOrigin] = useState<Pt | null>(null)
   const [curr, setCurr] = useState<Pt | null>(null)
@@ -35,13 +35,22 @@ export function OcrPick({
       const y = Math.min(a.y, b.y) * sy
       const w = Math.abs(a.x - b.x) * sx
       const h = Math.abs(a.y - b.y) * sy
-      if (w < 4 || h < 4) {
+      // 预览按 CSS 尺寸排版（物理像素作 width 会在 Retina 被再放大而发糊）
+      const cssX = Math.min(a.x, b.x)
+      const cssY = Math.min(a.y, b.y)
+      const cssW = Math.abs(a.x - b.x)
+      const cssH = Math.abs(a.y - b.y)
+      if (cssW < 4 || cssH < 4) {
         onCancel()
         return
       }
       finishing.current = true
-      // Drop freeze mask + reserve crop size; preview arrives via ocr-recognizing.
-      onFinishSelect({ w: Math.max(1, Math.round(w)), h: Math.max(1, Math.round(h)) })
+      onFinishSelect({
+        x: Math.max(0, Math.round(cssX)),
+        y: Math.max(0, Math.round(cssY)),
+        w: Math.max(1, Math.round(cssW)),
+        h: Math.max(1, Math.round(cssH)),
+      })
       void invoke('ocr_finish_pick', { x, y, w, h }).catch((e) => console.error(e))
     },
     [onCancel, onFinishSelect],
@@ -81,7 +90,6 @@ export function OcrPick({
 
   return (
     <div className="fixed inset-0 z-[100] cursor-crosshair select-none overflow-hidden bg-black">
-      {/* 蒙层始终盖在图上，亮窗时不会先闪一张未遮罩截图 */}
       {freeze ? (
         <img
           ref={imgRef}

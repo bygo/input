@@ -143,10 +143,9 @@ pub fn write(settings: &Settings) -> Result<(), String> {
 pub fn load_settings() -> Settings {
     let mut s = read();
     let mut dirty = false;
-    // 学习目标暂时固定英语（设置页已去掉目标语选项）。
+    // 学习目标固定英语（设置页无选项）；只在内存里校正，不静默写回磁盘。
     if s.target_language != default_language() {
         s.target_language = default_language();
-        dirty = true;
     }
     if s.native_language.trim().is_empty() {
         s.native_language = default_native_language();
@@ -167,6 +166,16 @@ pub fn load_settings() -> Settings {
     if is_legacy_default_pair(&s.compose_shortcut, &s.select_shortcut) {
         s.compose_shortcut = default_compose_shortcut();
         s.select_shortcut = default_select_shortcut();
+        dirty = true;
+    }
+    // 曾合并快捷键时可能把 select 写成与 compose 相同，拆回后需分开
+    if same_shortcut(&s.compose_shortcut, &s.select_shortcut) {
+        s.select_shortcut = default_select_shortcut();
+        if same_shortcut(&s.compose_shortcut, &s.select_shortcut)
+            || same_shortcut(&s.select_shortcut, &s.ocr_shortcut)
+        {
+            s.select_shortcut = "CommandOrControl+Shift+T".into();
+        }
         dirty = true;
     }
     if dirty {

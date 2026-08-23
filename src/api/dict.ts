@@ -12,3 +12,7 @@ export const dictLookup = (word: string) =>
 
 export const dictSpeak = (word: string, lang?: string) =>
   invoke<void>('dict_speak', { word, lang })
+
+export const dictStop = () => invoke<void>('dict_stop')
+
+export const dictSpeaking = () => invoke<boolean>('dict_speaking')

@@ -736,15 +736,19 @@ fn send_cmd_key(key: u16, press_command: bool, pid: Option<Handle>) -> Result<()
     use core_graphics::event::{CGEvent, CGEventFlags, KeyCode};
     use core_graphics::event_source::{CGEventSource, CGEventSourceStateID};
 
+    // CGEventFlagNonCoalesced — 避免与用户正在按住的修饰键事件合并。
+    const NON_COALESCED: CGEventFlags = CGEventFlags::from_bits_retain(0x8);
+
     let source = CGEventSource::new(CGEventSourceStateID::CombinedSessionState)
         .or_else(|_| CGEventSource::new(CGEventSourceStateID::HIDSystemState))
         .map_err(|()| "无法创建按键事件".to_string())?;
-    let flags = CGEventFlags::CGEventFlagCommand | CGEventFlags::from_bits_retain(0x8);
+    let flags = CGEventFlags::CGEventFlagCommand | NON_COALESCED;
+    // Option 按住时 Cmd+C/V 会变成特殊字符；先抬起再补回（AX insert 成功时不会走到这里）。
     let option_held = hid_key_down(KeyCode::OPTION) || hid_key_down(KeyCode::RIGHT_OPTION);
     if option_held {
         let opt_up = CGEvent::new_keyboard_event(source.clone(), KeyCode::OPTION, false)
             .map_err(|()| "无法创建按键事件".to_string())?;
-        opt_up.set_flags(CGEventFlags::from_bits_retain(0x8));
+        opt_up.set_flags(NON_COALESCED);
         post_key(&opt_up, pid);
         thread::sleep(Duration::from_millis(8));
     }
@@ -770,14 +774,13 @@ fn send_cmd_key(key: u16, press_command: bool, pid: Option<Handle>) -> Result<()
         thread::sleep(Duration::from_millis(16));
         let cmd_up = CGEvent::new_keyboard_event(source.clone(), KeyCode::COMMAND, false)
             .map_err(|()| "无法创建按键事件".to_string())?;
-        cmd_up.set_flags(CGEventFlags::from_bits_retain(0x8));
+        cmd_up.set_flags(NON_COALESCED);
         post_key(&cmd_up, pid);
     }
     if option_held {
         let opt_down = CGEvent::new_keyboard_event(source, KeyCode::OPTION, true)
             .map_err(|()| "无法创建按键事件".to_string())?;
-        opt_down
-            .set_flags(CGEventFlags::CGEventFlagAlternate | CGEventFlags::from_bits_retain(0x8));
+        opt_down.set_flags(CGEventFlags::CGEventFlagAlternate | NON_COALESCED);
         post_key(&opt_down, pid);
     }
     Ok(())
@@ -796,39 +799,41 @@ fn copy_selected_via_clipboard() -> Option<String> {
     let mut clipboard = Clipboard::new().ok()?;
     let previous = clipboard.get_text().ok();
     let before = os::pasteboard_count();
+    // changeCount 可用时不必写 marker，避免污染剪贴板。
     let use_marker = before.is_none();
     if use_marker {
         clipboard.set_text(MARKER).ok()?;
         thread::sleep(Duration::from_millis(4));
     }
-    send_cmd_key(KEY_C, true, None).ok()?;
-    let deadline = Instant::now() + Duration::from_millis(70);
+    let sent = send_cmd_key(KEY_C, true, None);
     let mut got = None;
-    while Instant::now() < deadline {
-        thread::sleep(Duration::from_millis(12));
-        let count_changed = match (before, os::pasteboard_count()) {
-            (Some(a), Some(b)) => a != b,
-            (Some(_), None) => false,
-            (None, _) => true,
-        };
-        if !count_changed {
-            continue;
+    if sent.is_ok() {
+        let deadline = Instant::now() + Duration::from_millis(120);
+        while Instant::now() < deadline {
+            let count_changed = match (before, os::pasteboard_count()) {
+                (Some(a), Some(b)) => a != b,
+                (Some(_), None) => false,
+                (None, _) => true,
+            };
+            if count_changed {
+                if let Ok(text) = clipboard.get_text() {
+                    if !(use_marker && (text == MARKER || text.trim().is_empty())) {
+                        let t = text.trim();
+                        if !t.is_empty() {
+                            got = Some(t.to_string());
+                            break;
+                        }
+                    }
+                }
+            }
+            thread::sleep(Duration::from_millis(8));
         }
-        let Ok(text) = clipboard.get_text() else {
-            continue;
-        };
-        if use_marker && (text == MARKER || text.trim().is_empty()) {
-            continue;
-        }
-        let t = text.trim();
-        if t.is_empty() {
-            continue;
-        }
-        got = Some(t.to_string());
-        break;
     }
+    // 无论成败都恢复剪贴板（含 marker 残留）。
     if let Some(prev) = previous {
         let _ = clipboard.set_text(&prev);
+    } else if use_marker {
+        let _ = clipboard.set_text("");
     }
     got
 }
@@ -846,6 +851,37 @@ fn send_paste(_pid: Option<Handle>) -> Result<(), String> {
         .key(Key::Control, Direction::Release)
         .map_err(|e| map_input_err(e.to_string()))?;
     Ok(())
+}
+
+#[cfg(not(target_os = "macos"))]
+fn copy_selected_via_clipboard() -> Option<String> {
+    let mut clipboard = Clipboard::new().ok()?;
+    let previous = clipboard.get_text().ok();
+    let mut enigo = Enigo::new(&Settings::default()).ok()?;
+    enigo.key(Key::Control, Direction::Press).ok()?;
+    enigo.key(Key::Unicode('c'), Direction::Click).ok()?;
+    enigo.key(Key::Control, Direction::Release).ok()?;
+    let deadline = std::time::Instant::now() + Duration::from_millis(120);
+    let mut got = None;
+    while std::time::Instant::now() < deadline {
+        std::thread::sleep(Duration::from_millis(8));
+        let Ok(text) = clipboard.get_text() else {
+            continue;
+        };
+        let t = text.trim();
+        if t.is_empty() {
+            continue;
+        }
+        if previous.as_deref() == Some(t) {
+            continue;
+        }
+        got = Some(t.to_string());
+        break;
+    }
+    if let Some(prev) = previous {
+        let _ = clipboard.set_text(&prev);
+    }
+    got
 }
 
 #[cfg(not(target_os = "macos"))]
@@ -947,8 +983,9 @@ pub fn remember(app: &AppHandle, capture_selection: bool) {
         None
     };
     #[cfg(not(target_os = "macos"))]
-    let selected = {
-        let _ = capture_selection;
+    let selected = if capture_selection {
+        copy_selected_via_clipboard()
+    } else {
         None
     };
     let saved = Saved {
@@ -987,10 +1024,10 @@ pub async fn paste_back(app: AppHandle, text: String) -> Result<(), String> {
         .try_state::<PasteTarget>()
         .and_then(|slot| slot.0.lock().unwrap().take());
     crate::overlay::dismiss_overlay(&app, false);
-    tokio::time::sleep(Duration::from_millis(80)).await;
+    tokio::time::sleep(Duration::from_millis(40)).await;
     if let Some(handle) = saved.as_ref().and_then(|s| s.handle) {
         os::activate(handle);
-        tokio::time::sleep(Duration::from_millis(80)).await;
+        tokio::time::sleep(Duration::from_millis(40)).await;
     }
     #[cfg(target_os = "macos")]
     {
@@ -1020,7 +1057,8 @@ pub async fn paste_back(app: AppHandle, text: String) -> Result<(), String> {
         crate::overlay::reveal_overlay(&app);
         return Err(e);
     }
-    tokio::time::sleep(Duration::from_millis(80)).await;
+    // 给目标应用读剪贴板的时间，再还原用户原文。
+    tokio::time::sleep(Duration::from_millis(50)).await;
     restore_clipboard(&mut clipboard, saved.as_ref());
     Ok(())
 }

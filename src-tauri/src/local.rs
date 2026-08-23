@@ -549,9 +549,26 @@ pub async fn mt_ready() -> bool {
 pub async fn translate(text: &str, source_lang: &str, target_lang: &str) -> Result<String, String> {
     let (src_name, src_code) = crate::lang::mt_lang_meta(source_lang);
     let (tgt_name, tgt_code) = crate::lang::mt_lang_meta(target_lang);
-    // Official TranslateGemma shape (two blank lines), with strict fidelity.
-    let prompt = format!(
-        "You are a strict {src_name} ({src_code}) to {tgt_name} ({tgt_code}) translator.\n\
+    let to_english = target_lang.contains("英语") || target_lang.contains("英文");
+    // 译向英语：不指源语言（避免 Chinese→English / English→English 误导）。
+    // 英→母语：保留 English → Native。
+    let prompt = if to_english {
+        format!(
+            "You are a strict translator into English (en).\n\
+Translate literally and faithfully. Keep the same meaning, person, tense, tone, and structure as much as possible.\n\
+Do NOT add any subject, object, possessive, location, cause, or relationship that is not explicit in the source.\n\
+Do NOT paraphrase for fluency, do NOT expand, soften, explain, or reinterpret. If a choice is between smoother wording and closer wording, choose closer wording.\n\
+If the source has multiple lines, translate EVERY line and preserve the same line breaks. Do not translate only the first line.\n\
+Output must be entirely in English. Keep well-known product/brand tokens (e.g. jsonformatter) as-is if needed; do not leave other non-English scripts except those tokens.\n\
+Produce only the English translation, with no commentary.\n\
+Please translate the following text into English:\n\
+\n\
+\n\
+{text}"
+        )
+    } else {
+        format!(
+            "You are a strict {src_name} ({src_code}) to {tgt_name} ({tgt_code}) translator.\n\
 Translate literally and faithfully. Keep the same meaning, person, tense, tone, and structure as much as possible.\n\
 Do NOT add any subject, object, possessive, location, cause, or relationship that is not explicit in the source.\n\
 Do NOT paraphrase for fluency, do NOT expand, soften, explain, or reinterpret. If a choice is between smoother wording and closer wording, choose closer wording.\n\
@@ -562,7 +579,14 @@ Please translate the following {src_name} text into {tgt_name}:\n\
 \n\
 \n\
 {text}"
-    );
+        )
+    };
+    let label = if to_english {
+        "text → English(en)".to_string()
+    } else {
+        format!("{src_name}({src_code}) → {tgt_name}({tgt_code})")
+    };
+    eprintln!("\n========== [MT prompt] {label} ==========\n{prompt}\n========== [/MT prompt] ==========\n");
     let client = reqwest::Client::builder()
         .timeout(Duration::from_secs(120))
         .build()
@@ -592,6 +616,9 @@ Please translate the following {src_name} text into {tgt_name}:\n\
         .map(|s| s.trim().to_string())
         .filter(|s| !s.is_empty())
         .ok_or_else(|| format!("翻译模型返回缺少 content: {body}"))?;
+    eprintln!(
+        "\n========== [MT result] ==========\n{content}\n========== [/MT result] ==========\n"
+    );
     Ok(content)
 }
 

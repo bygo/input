@@ -95,8 +95,21 @@ pub fn looks_like(text: &str, lang: &str) -> bool {
     }
 }
 
+/// 启发式语种猜测。**禁止**用于 select/OCR 的 into / mt_source（只用 `is_pure_english`）。
 pub fn detect(text: &str) -> Option<&'static str> {
     guess(text)
+}
+
+/// Select/OCR：MT 源语言。纯英文→英语；否则→母语（绝不用 detect 判成英语）。
+pub fn mt_source_for_selection(text: &str) -> String {
+    let s = crate::settings::read();
+    if is_pure_english(text) {
+        "英语".into()
+    } else if s.native_language.trim().is_empty() {
+        "中文".into()
+    } else {
+        s.native_language.trim().to_string()
+    }
 }
 
 /// Compose routing: if source language is confidently detected and differs from
@@ -258,6 +271,25 @@ fn has_forbidden_latin_in_chinese(text: &str) -> bool {
     false
 }
 
+/// 几乎全是拉丁字母才算纯英文（夹汉字/假名/谚文等都不算）。
+pub fn is_pure_english(text: &str) -> bool {
+    let mut any_latin = false;
+    for c in text.chars() {
+        if c.is_ascii_alphabetic() {
+            any_latin = true;
+            continue;
+        }
+        // 其它字母脚本或汉字 → 非纯英文
+        if is_han(c) || is_kana(c) || is_hangul(c) || is_cyrillic(c) || is_arabic(c) {
+            return false;
+        }
+        if c.is_alphabetic() {
+            return false;
+        }
+    }
+    any_latin
+}
+
 pub fn route(text: &str, native: &str, target: &str) -> String {
     let native = if native.trim().is_empty() {
         "中文"
@@ -269,10 +301,11 @@ pub fn route(text: &str, native: &str, target: &str) -> String {
     } else {
         target.trim()
     };
-    if looks_like(text, native) {
-        target.to_string()
-    } else {
+    // 纯英文 → 母语；其它（母语/混排/日韩等）→ 英语
+    if is_pure_english(text) {
         native.to_string()
+    } else {
+        target.to_string()
     }
 }
 
@@ -297,8 +330,27 @@ mod tests {
     }
 
     #[test]
-    fn japanese_goes_to_native() {
-        assert_eq!(route("こんにちは", "中文", "英语"), "中文");
+    fn non_english_goes_to_english() {
+        assert_eq!(route("こんにちは", "中文", "英语"), "英语");
+        assert_eq!(route("jsonformatter 都几万人做", "中文", "英语"), "英语");
+    }
+
+    #[test]
+    fn pure_english_detection() {
+        assert!(is_pure_english("Have you eaten yet today?"));
+        assert!(!is_pure_english("jsonformatter 都几万人做"));
+        assert!(!is_pure_english("你好"));
+        assert!(!is_pure_english("123 !!!"));
+    }
+
+    #[test]
+    fn selection_route_pure_english_only() {
+        assert_eq!(route("Hello world", "中文", "英语"), "中文");
+        assert_eq!(route("jsonformatter 都几万人做", "中文", "英语"), "英语");
+        assert_eq!(route("你好", "中文", "英语"), "英语");
+        // mt 源：纯英文→英语；混排→母语（不走 detect）
+        assert!(is_pure_english("Hello world"));
+        assert!(!is_pure_english("jsonformatter 都几万人做"));
     }
 
     #[test]

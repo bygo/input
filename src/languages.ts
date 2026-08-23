@@ -93,6 +93,16 @@ export function looksLikeLanguage(text: string, lang: string) {
   return g != null && g === lang
 }
 
+/** 与 Rust is_pure_english 一致：纯英文→母语，其它→英语。 */
+export function isPureEnglish(text: string) {
+  const letters = text.replace(
+    /[^A-Za-z\u4e00-\u9fff\u3040-\u30ff\uac00-\ud7af\u0400-\u04ff\u0600-\u06ff]/g,
+    '',
+  )
+  if (!letters) return false
+  return /^[A-Za-z]+$/.test(letters)
+}
+
 export function selectTranslateInto(text: string, native: string, target: string) {
-  return looksLikeLanguage(text, native) ? target : native
+  return isPureEnglish(text) ? native : target
 }

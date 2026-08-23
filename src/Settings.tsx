@@ -229,7 +229,7 @@ export function Settings() {
       <div className="flex flex-col gap-2">
         <Tip
           label="我现在的语言"
-          text={`学习目标固定为英语。选中文字按 ${formatShortcut(selectShortcut)}：母语↔英语互译；按 ${formatShortcut(composeShortcut)} 输入：英语则纠错润色，否则译成英语。`}
+          text={`学习目标固定为英语。纯英文↔母语；非纯英文（含中英混排）一律当母语并译成英语。选中 ${formatShortcut(selectShortcut)}；输入 ${formatShortcut(composeShortcut)}（英文先纠错再译母语）。`}
         />
         <LangGrid
           value={native}

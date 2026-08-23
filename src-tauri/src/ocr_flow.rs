@@ -2,22 +2,22 @@ use tauri::{Emitter, LogicalSize, Manager, PhysicalPosition, PhysicalSize};
 
 use crate::ocr;
 use crate::overlay::{
-    appear_window, arm_ignore_unfocus, clear_ocr_freeze, dismiss_overlay, ocr_picking, park_window,
-    set_ocr_freeze, set_ocr_picking, set_overlay_open, show_overlay, take_ocr_freeze, OverlayKind,
-    OverlayShown, OVERLAY_H, OVERLAY_W,
+    appear_window, arm_ignore_unfocus, clear_ocr_freeze, disarm_ignore_unfocus, dismiss_overlay,
+    ocr_freeze_origin, ocr_picking, park_window, set_ocr_freeze, set_ocr_picking, set_overlay_open,
+    show_overlay, OcrFreezeFrame, OverlayKind, OVERLAY_H, OVERLAY_W,
 };
 use crate::paste;
-
-#[derive(Clone, serde::Serialize)]
-pub struct OcrRecognizing {
-    /// data:image/png;base64,… preview of the cropped region
-    pub preview: String,
-}
 
 #[derive(Clone, serde::Serialize)]
 pub struct OcrPickStart {
     /// Absolute path to freeze JPEG — frontend loads via convertFileSrc (no base64).
     pub path: String,
+}
+
+#[derive(Clone, serde::Serialize)]
+pub struct OcrRecognizing {
+    /// 选区 JPEG 绝对路径；前端 convertFileSrc
+    pub preview: String,
 }
 
 pub fn start_ocr_capture(app: &tauri::AppHandle) {
@@ -78,7 +78,14 @@ pub fn start_ocr_capture(app: &tauri::AppHandle) {
         let path_str = freeze_path.to_string_lossy().to_string();
         let handle = app2.clone();
         let _ = app2.run_on_main_thread(move || {
-            set_ocr_freeze(&handle, Some(freeze_path));
+            set_ocr_freeze(
+                &handle,
+                Some(OcrFreezeFrame {
+                    path: freeze_path,
+                    origin_x: lx,
+                    origin_y: ly,
+                }),
+            );
             let Some(win) = handle.get_webview_window("main") else {
                 clear_ocr_freeze(&handle);
                 set_ocr_picking(&handle, false);
@@ -135,19 +142,19 @@ pub async fn ocr_finish_pick(
     w: f64,
     h: f64,
 ) -> Result<(), String> {
-    let freeze = take_ocr_freeze(&app).ok_or_else(|| "没有定格图".to_string())?;
+    let (origin_x, origin_y) =
+        ocr_freeze_origin(&app).ok_or_else(|| "没有定格图".to_string())?;
+    clear_ocr_freeze(&app);
 
-    let xi = x.max(0.0).floor() as u32;
-    let yi = y.max(0.0).floor() as u32;
-    let wi = w.max(0.0).ceil() as u32;
-    let hi = h.max(0.0).ceil() as u32;
-    let crop = tokio::task::spawn_blocking(move || {
-        let out = ocr::crop_image_to_file(&freeze, xi, yi, wi, hi);
-        let _ = std::fs::remove_file(&freeze);
-        out
-    })
-    .await
-    .map_err(|e| e.to_string())?;
+    // Nominal 定格与 webview 1:1：框选像素 ≈ 屏幕 CSS points
+    let sx = origin_x + x.max(0.0);
+    let sy = origin_y + y.max(0.0);
+    let sw = w.max(0.0);
+    let sh = h.max(0.0);
+
+    let crop = tokio::task::spawn_blocking(move || ocr::capture_region_retina(sx, sy, sw, sh))
+        .await
+        .map_err(|e| e.to_string())?;
 
     let path = match crop {
         Ok(p) => p,
@@ -167,11 +174,10 @@ pub async fn ocr_finish_pick(
         }
     };
 
-    let preview = ocr::read_data_url(&path).unwrap_or_default();
-
+    let preview_path = path.to_string_lossy().to_string();
     {
         let app2 = app.clone();
-        let preview2 = preview.clone();
+        let preview2 = preview_path;
         let _ = app.run_on_main_thread(move || {
             paste::remember(&app2, false);
             set_overlay_open(&app2, true);
@@ -182,7 +188,7 @@ pub async fn ocr_finish_pick(
 
     let recognized = tokio::task::spawn_blocking(move || {
         let text = ocr::recognize_image(&path);
-        let _ = std::fs::remove_file(&path);
+        // 预览仍占用 path，识别完不立刻删
         text
     })
     .await
@@ -195,10 +201,11 @@ pub async fn ocr_finish_pick(
                 let app2 = app.clone();
                 let _ = app.run_on_main_thread(move || {
                     set_ocr_picking(&app2, false);
+                    disarm_ignore_unfocus(&app2);
                     let Some(win) = app2.get_webview_window("main") else {
                         return;
                     };
-                    arm_ignore_unfocus(&app2);
+                    let _ = win.set_focus();
                     let _ = win.emit("ocr-error", "未识别到文字".to_string());
                 });
                 return Err("未识别到文字".into());
@@ -206,11 +213,13 @@ pub async fn ocr_finish_pick(
             let app2 = app.clone();
             let _ = app.run_on_main_thread(move || {
                 set_ocr_picking(&app2, false);
+                // 面板已亮过：撤掉 ignore，并抢回焦点，否则点外侧不触发失焦关闭
+                disarm_ignore_unfocus(&app2);
                 let Some(win) = app2.get_webview_window("main") else {
                     return;
                 };
-                arm_ignore_unfocus(&app2);
-                let _ = win.emit("overlay-shown", OverlayShown { selected: text });
+                let _ = win.set_focus();
+                let _ = win.emit("ocr-text", text);
             });
             Ok(())
         }
@@ -219,10 +228,11 @@ pub async fn ocr_finish_pick(
             let app2 = app.clone();
             let _ = app.run_on_main_thread(move || {
                 set_ocr_picking(&app2, false);
+                disarm_ignore_unfocus(&app2);
                 let Some(win) = app2.get_webview_window("main") else {
                     return;
                 };
-                arm_ignore_unfocus(&app2);
+                let _ = win.set_focus();
                 let _ = win.emit("ocr-error", msg);
             });
             Err(e)

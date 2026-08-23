@@ -14,6 +14,7 @@ mod settings;
 
 use std::sync::Mutex;
 use tauri::{
+    image::Image,
     menu::{Menu, MenuItem},
     tray::{MouseButton, MouseButtonState, TrayIconBuilder, TrayIconEvent},
     Manager, WindowEvent,
@@ -21,8 +22,9 @@ use tauri::{
 
 use hotkeys::register_hotkeys;
 use overlay::{
-    dismiss_overlay, should_ignore_unfocus, show_overlay, warmup_window, CursorAnchor,
-    IgnoreUnfocusUntil, OcrFreeze, OcrPicking, OverlayKind, OverlayOpen, ShortcutCapture,
+    clear_ignore_unfocus, dismiss_overlay, should_ignore_unfocus, show_overlay, warmup_window,
+    CursorAnchor, IgnoreUnfocusUntil, OcrFreeze, OcrPicking, OverlayKind, OverlayOpen,
+    ShortcutCapture,
 };
 
 pub fn run() {
@@ -57,7 +59,9 @@ pub fn run() {
             overlay::reposition,
             overlay::dismiss,
             dict::dict_lookup,
-            dict::dict_speak
+            dict::dict_speak,
+            dict::dict_stop,
+            dict::dict_speaking
         ])
         .setup(|app| {
             #[cfg(target_os = "macos")]
@@ -66,8 +70,11 @@ pub fn run() {
             let settings_item = MenuItem::with_id(app, "settings", "设置", true, None::<&str>)?;
             let quit = MenuItem::with_id(app, "quit", "退出", true, None::<&str>)?;
             let menu = Menu::with_items(app, &[&settings_item, &quit])?;
+            let tray_icon = Image::from_bytes(include_bytes!("../icons/tray.png"))?;
             TrayIconBuilder::new()
-                .icon(app.default_window_icon().unwrap().clone())
+                .icon(tray_icon)
+                .icon_as_template(true)
+                .tooltip("input")
                 .menu(&menu)
                 .show_menu_on_left_click(false)
                 .on_tray_icon_event(|tray, event| {
@@ -107,11 +114,17 @@ pub fn run() {
             Ok(())
         })
         .on_window_event(|window, event| {
-            if let WindowEvent::Focused(false) = event {
-                if should_ignore_unfocus(window.app_handle()) {
-                    return;
+            match event {
+                WindowEvent::Focused(true) => {
+                    clear_ignore_unfocus(window.app_handle());
                 }
-                dismiss_overlay(window.app_handle(), false);
+                WindowEvent::Focused(false) => {
+                    if should_ignore_unfocus(window.app_handle()) {
+                        return;
+                    }
+                    dismiss_overlay(window.app_handle(), false);
+                }
+                _ => {}
             }
         })
         .run(tauri::generate_context!())

@@ -13,15 +13,13 @@ bun run tauri dev
 
 ## 配置
 
-设置写在 `~/input-workspace/settings.json`。
+设置写在 `~/input-workspace/settings.json`。默认走内置云端，安装即可用，**不必配 Key**。
 
-设置里用图标选择服务，再选模型：
+快捷键、母语等可在托盘 → 设置里改。
 
-- **Claude**：Anthropic Key（`sk-ant-…`）
-- **GPT**：OpenAI Key（`sk-…`）
-- **OpenRouter**：OpenRouter Key（`sk-or-…`），可走多家模型
-- **Grok**：[console.x.ai](https://console.x.ai) 的 xAI Key（默认）
-- **Ollama**：本地，先 `ollama serve` 再 `ollama pull`，Key 可空
+### 自备 Key / 本地模型（兜底，不是功能）
+
+配自己的 API Key、或安装本地模型，只是云端不可用时的退路，**不作为产品能力对外宣传**。日常用法以开箱即用为准。
 
 ## Windows 打包
 
