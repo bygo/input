@@ -28,7 +28,9 @@ bun run tauri dev
 本机在 macOS 上无法直接产出 Windows 安装包，使用 GitHub Actions：
 
 1. 在仓库 **Actions → Windows → Run workflow** 手动触发
-2. 跑完后下载 Artifact `input-windows`（含 `.exe` / `.msi`）
+2. 跑完后下载 Artifact `input-windows`（NSIS `.exe`）
 3. 或推送 `v*` tag，会额外打一份 Draft Release
+
+CI 已启用 Rust 缓存；首次仍偏慢，二次及以后会明显快一些。
 
 Windows 上截屏取词暂不可用，其余输入/翻译能力可用。
