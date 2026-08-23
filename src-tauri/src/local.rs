@@ -64,18 +64,22 @@ fn bundled_bin() -> Result<PathBuf, String> {
 }
 
 fn which_ollama() -> Option<PathBuf> {
-    let cmd = if cfg!(windows) { "where" } else { "which" };
-    let out = Command::new(cmd).arg("ollama").output().ok()?;
-    if !out.status.success() {
-        return None;
-    }
-    let s = String::from_utf8(out.stdout).ok()?;
-    let line = s.lines().next()?.trim();
-    if line.is_empty() {
-        None
+    // 扫 PATH，避免 Windows 上 `where` 弹出控制台窗口。
+    let names: &[&str] = if cfg!(windows) {
+        &["ollama.exe", "ollama"]
     } else {
-        Some(PathBuf::from(line))
+        &["ollama"]
+    };
+    let path = std::env::var_os("PATH")?;
+    for dir in std::env::split_paths(&path) {
+        for name in names {
+            let p = dir.join(name);
+            if p.is_file() {
+                return Some(p);
+            }
+        }
     }
+    None
 }
 
 fn resolve_bin() -> Option<PathBuf> {
@@ -291,15 +295,19 @@ async fn download_ollama(app: &AppHandle) -> Result<PathBuf, String> {
     }
     drop(file);
     emit(app, "extract", "正在解压…", 42);
-    let status = Command::new("tar")
-        .args([
-            "-xf",
-            archive.to_str().unwrap(),
-            "-C",
-            dir.to_str().unwrap(),
-        ])
-        .status()
-        .map_err(|e| format!("解压失败: {e}"))?;
+    let mut tar = Command::new("tar");
+    tar.args([
+        "-xf",
+        archive.to_str().unwrap(),
+        "-C",
+        dir.to_str().unwrap(),
+    ]);
+    #[cfg(windows)]
+    {
+        use std::os::windows::process::CommandExt;
+        tar.creation_flags(0x0800_0000);
+    }
+    let status = tar.status().map_err(|e| format!("解压失败: {e}"))?;
     if !status.success() {
         return Err("解压失败".into());
     }

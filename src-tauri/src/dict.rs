@@ -295,6 +295,51 @@ pub fn warm_tts() {
     tts::warm(Some("Samantha"));
 }
 
+/// Windows：进程内 ISpVoice 单例，不弹任何窗口、不启 PowerShell。
+#[cfg(target_os = "windows")]
+mod tts {
+    use std::sync::Mutex;
+    use windows::core::PCWSTR;
+    use windows::Win32::Media::Speech::{ISpVoice, SpVoice, SPF_ASYNC, SPF_IS_NOT_XML, SPF_PURGEBEFORESPEAK};
+    use windows::Win32::System::Com::{CoCreateInstance, CoInitializeEx, CLSCTX_ALL, COINIT_MULTITHREADED};
+
+    static VOICE: Mutex<Option<ISpVoice>> = Mutex::new(None);
+
+    fn voice() -> Result<ISpVoice, String> {
+        let mut g = VOICE.lock().map_err(|e| e.to_string())?;
+        if let Some(v) = g.as_ref() {
+            return Ok(v.clone());
+        }
+        unsafe {
+            let _ = CoInitializeEx(None, COINIT_MULTITHREADED);
+            let v: ISpVoice = CoCreateInstance(&SpVoice, None, CLSCTX_ALL)
+                .map_err(|e| format!("初始化语音失败: {e}"))?;
+            *g = Some(v.clone());
+            Ok(v)
+        }
+    }
+
+    pub fn warm() {
+        let _ = voice();
+    }
+
+    pub fn speak(word: &str) -> Result<(), String> {
+        let v = voice()?;
+        let wide: Vec<u16> = word.encode_utf16().chain(std::iter::once(0)).collect();
+        let flags = (SPF_ASYNC.0 | SPF_PURGEBEFORESPEAK.0 | SPF_IS_NOT_XML.0) as u32;
+        unsafe {
+            v.Speak(PCWSTR(wide.as_ptr()), flags, None)
+                .map_err(|e| format!("发音失败: {e}"))?;
+        }
+        Ok(())
+    }
+}
+
+#[cfg(target_os = "windows")]
+pub fn warm_tts() {
+    tts::warm();
+}
+
 #[tauri::command]
 pub fn dict_speak(app: AppHandle, word: String, lang: Option<String>) -> Result<(), String> {
     let w = word.trim();
@@ -367,24 +412,8 @@ pub fn dict_speak(app: AppHandle, word: String, lang: Option<String>) -> Result<
     }
     #[cfg(target_os = "windows")]
     {
-        use std::os::windows::process::CommandExt;
         let _ = (app, lang);
-        let escaped = w.replace('\'', "''");
-        // CREATE_NO_WINDOW：发音不应弹出控制台。
-        std::process::Command::new("powershell")
-            .args([
-                "-NoProfile",
-                "-NonInteractive",
-                "-WindowStyle",
-                "Hidden",
-                "-Command",
-                &format!(
-                    "Add-Type -AssemblyName System.Speech; (New-Object System.Speech.Synthesis.SpeechSynthesizer).Speak('{escaped}')"
-                ),
-            ])
-            .creation_flags(0x0800_0000)
-            .spawn()
-            .map_err(|e| format!("发音失败: {e}"))?;
+        tts::speak(w)?;
         return Ok(());
     }
     #[cfg(not(any(target_os = "macos", target_os = "windows")))]
