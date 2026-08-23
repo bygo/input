@@ -300,21 +300,33 @@ pub fn warm_tts() {
 mod tts {
     use std::sync::Mutex;
     use windows::core::PCWSTR;
-    use windows::Win32::Media::Speech::{ISpVoice, SpVoice, SPF_ASYNC, SPF_IS_NOT_XML, SPF_PURGEBEFORESPEAK};
-    use windows::Win32::System::Com::{CoCreateInstance, CoInitializeEx, CLSCTX_ALL, COINIT_MULTITHREADED};
+    use windows::Win32::Media::Speech::{
+        ISpVoice, SpVoice, SPF_ASYNC, SPF_IS_NOT_XML, SPF_PURGEBEFORESPEAK,
+    };
+    use windows::Win32::System::Com::{
+        CoCreateInstance, CoInitializeEx, CLSCTX_ALL, COINIT_MULTITHREADED,
+    };
 
-    static VOICE: Mutex<Option<ISpVoice>> = Mutex::new(None);
+    // MTA 下跨线程使用；windows 的 COM 指针默认非 Send/Sync。
+    struct Voice(ISpVoice);
+    unsafe impl Send for Voice {}
+    unsafe impl Sync for Voice {}
+
+    static VOICE: Mutex<Option<Voice>> = Mutex::new(None);
 
     fn voice() -> Result<ISpVoice, String> {
-        let mut g = VOICE.lock().map_err(|e| e.to_string())?;
-        if let Some(v) = g.as_ref() {
-            return Ok(v.clone());
-        }
+        // 每个调用线程都要进 MTA（已初始化则返回 S_FALSE）。
         unsafe {
             let _ = CoInitializeEx(None, COINIT_MULTITHREADED);
+        }
+        let mut g = VOICE.lock().map_err(|e| e.to_string())?;
+        if let Some(v) = g.as_ref() {
+            return Ok(v.0.clone());
+        }
+        unsafe {
             let v: ISpVoice = CoCreateInstance(&SpVoice, None, CLSCTX_ALL)
                 .map_err(|e| format!("初始化语音失败: {e}"))?;
-            *g = Some(v.clone());
+            *g = Some(Voice(v.clone()));
             Ok(v)
         }
     }
