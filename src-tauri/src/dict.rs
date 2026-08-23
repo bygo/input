@@ -191,48 +191,205 @@ pub fn dict_lookup(app: AppHandle, word: String) -> Result<Option<DictEntry>, St
     })
 }
 
+/// macOS：主线程常驻 NSSpeechSynthesizer，避免每次 spawn `say`。
+#[cfg(target_os = "macos")]
+mod tts {
+    use objc2::msg_send;
+    use objc2::runtime::{AnyClass, AnyObject};
+    use std::cell::RefCell;
+    use std::ffi::CString;
+
+    #[link(name = "AppKit", kind = "framework")]
+    extern "C" {}
+
+    thread_local! {
+        static SYNTH: RefCell<Option<(*mut AnyObject, String)>> = const { RefCell::new(None) };
+    }
+
+    fn ns_string(s: &str) -> *mut AnyObject {
+        let c = CString::new(s).unwrap_or_default();
+        unsafe {
+            let cls = AnyClass::get(c"NSString").unwrap();
+            msg_send![cls, stringWithUTF8String: c.as_ptr()]
+        }
+    }
+
+    fn synth(voice: Option<&str>) -> *mut AnyObject {
+        SYNTH.with(|slot| {
+            let key = voice.unwrap_or("").to_string();
+            let mut g = slot.borrow_mut();
+            if let Some((p, v)) = g.as_ref() {
+                if *v == key && !p.is_null() {
+                    return *p;
+                }
+            }
+            unsafe {
+                let cls = AnyClass::get(c"NSSpeechSynthesizer").unwrap();
+                let syn: *mut AnyObject = msg_send![cls, new];
+                if let Some(want) = voice {
+                    let voices: *mut AnyObject = msg_send![cls, availableVoices];
+                    let n: usize = msg_send![voices, count];
+                    let name_key = ns_string("VoiceName");
+                    for i in 0..n {
+                        let vid: *mut AnyObject = msg_send![voices, objectAtIndex: i];
+                        let attrs: *mut AnyObject = msg_send![cls, attributesForVoice: vid];
+                        if attrs.is_null() {
+                            continue;
+                        }
+                        let name: *mut AnyObject = msg_send![attrs, objectForKey: name_key];
+                        if name.is_null() {
+                            continue;
+                        }
+                        let utf8: *const std::ffi::c_char = msg_send![name, UTF8String];
+                        if utf8.is_null() {
+                            continue;
+                        }
+                        let s = std::ffi::CStr::from_ptr(utf8).to_string_lossy();
+                        if s.eq_ignore_ascii_case(want) {
+                            let _: bool = msg_send![syn, setVoice: vid];
+                            break;
+                        }
+                    }
+                }
+                *g = Some((syn, key));
+                syn
+            }
+        })
+    }
+
+    pub fn stop() {
+        SYNTH.with(|slot| {
+            if let Some((p, _)) = slot.borrow().as_ref() {
+                if !p.is_null() {
+                    unsafe {
+                        let _: () = msg_send![*p, stopSpeaking];
+                    }
+                }
+            }
+        });
+    }
+
+    pub fn speak(word: &str, voice: Option<&str>) {
+        let syn = synth(voice);
+        let s = ns_string(word);
+        unsafe {
+            let _: () = msg_send![syn, stopSpeaking];
+            let _: bool = msg_send![syn, startSpeakingString: s];
+        }
+    }
+
+    /// 进程启动时在主线程调用：创建单例并点一下语音服务。
+    pub fn warm(voice: Option<&str>) {
+        let syn = synth(voice);
+        let s = ns_string(" ");
+        unsafe {
+            let _: bool = msg_send![syn, startSpeakingString: s];
+            let _: () = msg_send![syn, stopSpeaking];
+        }
+    }
+}
+
+/// 在主线程调用（app setup 里）：进程起来就建好单例。
+#[cfg(target_os = "macos")]
+pub fn warm_tts() {
+    tts::warm(Some("Samantha"));
+}
+
 #[tauri::command]
-pub fn dict_speak(word: String, lang: Option<String>) -> Result<(), String> {
+pub fn dict_speak(app: AppHandle, word: String, lang: Option<String>) -> Result<(), String> {
     let w = word.trim();
     if w.is_empty() {
         return Ok(());
     }
     #[cfg(target_os = "macos")]
     {
-        let mut cmd = std::process::Command::new("say");
+        use std::hash::{Hash, Hasher};
+        use std::os::unix::process::CommandExt;
         // 简单按目标语选音色；无则系统默认。
         let voice = match lang.as_deref().unwrap_or("").trim() {
             "英语" | "en" | "English" => Some("Samantha"),
-            "中文" | "zh" | "Chinese" => Some("Ting-Ting"),
+            "中文" | "zh" | "Chinese" => Some("Tingting"),
             _ => None,
         };
-        if let Some(v) = voice {
-            cmd.args(["-v", v]);
+        let mut hasher = std::collections::hash_map::DefaultHasher::new();
+        w.hash(&mut hasher);
+        voice.unwrap_or("").hash(&mut hasher);
+        let cache = std::env::temp_dir().join(format!("input-tts-{:x}.aiff", hasher.finish()));
+        let miss = !cache.is_file();
+        let w2 = w.to_string();
+        let voice2 = voice.map(|s| s.to_string());
+        let cache2 = cache.clone();
+        app.run_on_main_thread(move || {
+            tts::stop();
+            let _ = std::process::Command::new("killall")
+                .args(["-q", "afplay"])
+                .status();
+            if cache2.is_file() {
+                let _ = std::process::Command::new("afplay").arg(&cache2).spawn();
+            } else {
+                tts::speak(&w2, voice2.as_deref());
+            }
+        })
+        .map_err(|e| format!("发音失败: {e}"))?;
+        // 未命中缓存时后台写盘，下次走 afplay。
+        if miss {
+            let w3 = w.to_string();
+            let cache3 = cache.clone();
+            let tmp = cache.with_extension("aiff.part");
+            let lock = cache.with_extension("aiff.lock");
+            std::thread::spawn(move || {
+                if cache3.is_file() {
+                    return;
+                }
+                if std::fs::OpenOptions::new()
+                    .write(true)
+                    .create_new(true)
+                    .open(&lock)
+                    .is_err()
+                {
+                    return;
+                }
+                let mut c = std::process::Command::new("say");
+                c.arg0("input-tts-cache");
+                if let Some(v) = voice {
+                    c.args(["-v", v]);
+                }
+                let ok = c.arg("-o").arg(&tmp).arg(&w3).status().map(|s| s.success()).unwrap_or(false);
+                if ok {
+                    let _ = std::fs::rename(&tmp, &cache3);
+                } else {
+                    let _ = std::fs::remove_file(&tmp);
+                }
+                let _ = std::fs::remove_file(&lock);
+            });
         }
-        cmd.arg(w)
-            .spawn()
-            .map_err(|e| format!("发音失败: {e}"))?;
         return Ok(());
     }
     #[cfg(target_os = "windows")]
     {
-        let _ = lang;
+        use std::os::windows::process::CommandExt;
+        let _ = (app, lang);
         let escaped = w.replace('\'', "''");
+        // CREATE_NO_WINDOW：发音不应弹出控制台。
         std::process::Command::new("powershell")
             .args([
                 "-NoProfile",
+                "-NonInteractive",
+                "-WindowStyle",
+                "Hidden",
                 "-Command",
                 &format!(
                     "Add-Type -AssemblyName System.Speech; (New-Object System.Speech.Synthesis.SpeechSynthesizer).Speak('{escaped}')"
                 ),
             ])
+            .creation_flags(0x0800_0000)
             .spawn()
             .map_err(|e| format!("发音失败: {e}"))?;
         return Ok(());
     }
     #[cfg(not(any(target_os = "macos", target_os = "windows")))]
     {
-        let _ = lang;
+        let _ = (app, lang);
         Err("当前平台暂不支持发音".into())
     }
 }
