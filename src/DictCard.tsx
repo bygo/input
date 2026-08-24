@@ -36,19 +36,21 @@ export function DictCard({
           <Volume2 className="size-3.5" />
         </button>
       </div>
-      <ul className="mt-1 space-y-0.5">
-        {entry.senses.map((s, i) => (
-          <li
-            key={`${s.pos}-${i}`}
-            className="text-[14px] leading-5 break-words [overflow-wrap:anywhere] text-foreground/90"
-          >
-            {s.pos ? (
-              <span className={cn('mr-1.5 text-[12px] text-muted-foreground')}>{s.pos}.</span>
-            ) : null}
-            {s.gloss}
-          </li>
-        ))}
-      </ul>
+      {entry.senses.length > 0 ? (
+        <ul className="mt-1 space-y-0.5">
+          {entry.senses.map((s, i) => (
+            <li
+              key={`${s.pos}-${i}`}
+              className="text-[14px] leading-5 break-words [overflow-wrap:anywhere] text-foreground/90"
+            >
+              {s.pos ? (
+                <span className={cn('mr-1.5 text-[12px] text-muted-foreground')}>{s.pos}.</span>
+              ) : null}
+              {s.gloss}
+            </li>
+          ))}
+        </ul>
+      ) : null}
     </div>
   )
 }

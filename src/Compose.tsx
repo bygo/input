@@ -8,6 +8,7 @@ import { dictLookup, dictSpeak, dictSpeaking, dictStop } from './api/dict'
 import { pasteBack } from './api/paste'
 import {
   type Analysis,
+  composePunchAtom,
   dictAtom,
   errorAtom,
   languageAtom,
@@ -23,6 +24,8 @@ import { Separator } from '@/components/ui/separator'
 import { cn } from '@/lib/utils'
 
 const INPUT_MAX_H = 240
+const LINE_H = 40 // 一行 min-h-10
+const SEP_H = 1 // Separator h-px
 
 function autosize(el: HTMLTextAreaElement | null, minH = 0, maxH = INPUT_MAX_H) {
   if (!el) return
@@ -125,10 +128,18 @@ export function Compose() {
   const [native] = useAtom(nativeLanguageAtom)
   const [view] = useAtom(viewAtom)
   const [ocrPreview, setOcrPreview] = useAtom(ocrPreviewAtom)
+  const [, setComposePunch] = useAtom(composePunchAtom)
   const inputRef = useRef<HTMLTextAreaElement>(null)
   const origRef = useRef<HTMLTextAreaElement>(null)
   const rightRef = useRef<HTMLDivElement>(null)
+  const topSecRef = useRef<HTMLDivElement>(null)
+  const botSecRef = useRef<HTMLDivElement>(null)
   const [rightTaller, setRightTaller] = useState(false)
+  /** 原文左列贴英语栏：top = 母语+分隔，height = 英语栏 */
+  const [origLayout, setOrigLayout] = useState({ top: 0, height: 40 })
+  /** 词卡弹出后钉死一二栏高度，避免词卡高低切换时挤动 */
+  const paneLockRef = useRef<{ top: number; bot: number } | null>(null)
+  const [paneLock, setPaneLock] = useState<{ top: number; bot: number } | null>(null)
   const req = useRef(0)
   const insertRef = useRef<(sentence: string) => Promise<void>>(async () => {})
   /** 英文源 → 母语：loading / 结果在输入栏 */
@@ -319,6 +330,10 @@ export function Compose() {
     }
   }, [setDict, setError, setOcrPreview, setResult, setSending, setText])
 
+  const hasLeft = original !== null
+  const showOrig = hasLeft
+  const origPunch = showOrig && !ocrPreview?.src
+
   const ocrPadForMin = ocrPreview?.w && ocrPreview.w > 0 ? 8 : 0
   const shotHForAutosize =
     ocrPreview?.h && ocrPreview.h > 0 ? ocrPreview.h + ocrPadForMin * 2 : 0
@@ -334,8 +349,25 @@ export function Compose() {
     colMinForAutosize > 0 ? Math.max(INPUT_MAX_H, colMinForAutosize) : INPUT_MAX_H
   useLayoutEffect(() => {
     autosize(inputRef.current, colMinForAutosize, colMaxForAutosize)
-    autosize(origRef.current)
-  }, [text, sending, dict, english, original, ocrPreview, colMinForAutosize, colMaxForAutosize])
+    if (!origPunch) autosize(origRef.current)
+  }, [text, sending, english, original, ocrPreview, colMinForAutosize, colMaxForAutosize, origPunch])
+
+  // 有词卡时锁定母语/英语栏像素高；关掉词卡后解除
+  useLayoutEffect(() => {
+    if (!dict) {
+      paneLockRef.current = null
+      setPaneLock(null)
+      return
+    }
+    if (paneLockRef.current) return
+    const topEl = topSecRef.current ?? inputRef.current
+    const botEl = botSecRef.current
+    if (!topEl) return
+    const lock = { top: topEl.offsetHeight, bot: botEl?.offsetHeight ?? 0 }
+    if (lock.top < 1) return
+    paneLockRef.current = lock
+    setPaneLock(lock)
+  }, [dict, text, english, sending])
 
   // 右栏高于截图时，露出的左下角补圆角
   useLayoutEffect(() => {
@@ -352,6 +384,32 @@ export function Compose() {
     ro.observe(el)
     return () => ro.disconnect()
   }, [ocrPreview?.h, ocrPreview?.w, text, english, sending, original, error])
+
+  useEffect(() => {
+    setComposePunch(origPunch)
+    return () => setComposePunch(false)
+  }, [origPunch, setComposePunch])
+
+  // 原文高度钉死英语栏，上方挖空（对称 OCR 图下挖空）
+  useLayoutEffect(() => {
+    if (!origPunch) return
+    const topEl = topSecRef.current
+    const botEl = botSecRef.current
+    if (!topEl) return
+    const sync = () => {
+      const sep = botEl ? SEP_H : 0
+      const top = topEl.offsetHeight + sep
+      const height = botEl
+        ? botEl.offsetHeight
+        : Math.max(LINE_H, rightRef.current?.clientHeight ?? LINE_H)
+      setOrigLayout({ top, height })
+    }
+    sync()
+    const ro = new ResizeObserver(sync)
+    ro.observe(topEl)
+    if (botEl) ro.observe(botEl)
+    return () => ro.disconnect()
+  }, [origPunch, text, english, sending, original, error])
 
   useEffect(() => {
     const onKey = (e: globalThis.KeyboardEvent) => {
@@ -371,38 +429,32 @@ export function Compose() {
 
   const imgW = ocrPreview?.w && ocrPreview.w > 0 ? ocrPreview.w : 0
   const imgH = ocrPreview?.h && ocrPreview.h > 0 ? ocrPreview.h : 0
-  const hasLeft = original !== null
-  // OCR 点词：只留截图+词卡
-  const ocrDictOnly = !!ocrPreview?.src && !!dict
-  const showOrig = hasLeft && !ocrDictOnly
   const origW = showOrig ? 360 : 0
   // 截图四周 padding，露出底衬才像「被截下来的」
   const ocrPad = imgW > 0 ? 8 : 0
   const boxW = 360 + imgW + ocrPad * 2 + origW
-  const lineH = 40 // 一行 min-h-10
-  const sepH = 1 // Separator h-px
   // 右栏总高对齐截图底衬；两栏扣分隔线后均分（上 ceil / 下 floor）
   const shotH = imgH > 0 ? imgH + ocrPad * 2 : 0
-  const avail = shotH > 0 ? Math.max(0, shotH - sepH) : 0
-  const colMinTop = shotH > 0 ? Math.max(lineH, Math.ceil(avail / 2)) : lineH
-  const colMinBot = shotH > 0 ? Math.max(lineH, Math.floor(avail / 2)) : lineH
+  const avail = shotH > 0 ? Math.max(0, shotH - SEP_H) : 0
+  const colMinTop = shotH > 0 ? Math.max(LINE_H, Math.ceil(avail / 2)) : LINE_H
+  const colMinBot = shotH > 0 ? Math.max(LINE_H, Math.floor(avail / 2)) : LINE_H
   const colMaxTop = Math.max(INPUT_MAX_H, colMinTop)
   const colMaxBot = Math.max(INPUT_MAX_H, colMinBot)
   // 单栏（无下栏）时整高对齐截图
-  const colMinSolo = shotH > 0 ? shotH : lineH
+  const colMinSolo = shotH > 0 ? shotH : LINE_H
   const colMaxSolo = Math.max(INPUT_MAX_H, colMinSolo)
   const topBoxStyle =
     imgH > 0
       ? ({ minHeight: colMinTop, maxHeight: colMaxTop } as const)
-      : ({ minHeight: lineH, maxHeight: INPUT_MAX_H } as const)
+      : ({ minHeight: LINE_H, maxHeight: INPUT_MAX_H } as const)
   const botBoxStyle =
     imgH > 0
       ? ({ minHeight: colMinBot, maxHeight: colMaxBot } as const)
-      : ({ minHeight: lineH, maxHeight: INPUT_MAX_H } as const)
+      : ({ minHeight: LINE_H, maxHeight: INPUT_MAX_H } as const)
   const soloBoxStyle =
     imgH > 0
       ? ({ minHeight: colMinSolo, maxHeight: colMaxSolo } as const)
-      : ({ minHeight: lineH, maxHeight: INPUT_MAX_H } as const)
+      : ({ minHeight: LINE_H, maxHeight: INPUT_MAX_H } as const)
   const diffParts =
     hasLeft && original.trim() && english.trim()
       ? wordDiff(original.trim(), english.trim())
@@ -423,7 +475,7 @@ export function Compose() {
 
   const ocrPunch = !!ocrPreview?.src
   const paneChrome =
-    'bg-card ring-1 ring-foreground/10 shadow-[0_1px_2px_rgb(0_0_0/0.16)] dark:shadow-[0_1px_2px_rgb(0_0_0/0.55)]'
+    'bg-card ring-1 ring-foreground/20 shadow-[0_1px_2px_rgb(0_0_0/0.16)] dark:shadow-[0_1px_2px_rgb(0_0_0/0.55)]'
 
   return (
     <div
@@ -476,64 +528,104 @@ export function Compose() {
       ) : null}
 
       {showOrig ? (
-        <div
-          className={cn(
-            'relative flex w-[360px] shrink-0 self-stretch overflow-hidden border-r border-foreground/20',
-            ocrPunch && paneChrome,
-            ocrPunch && rightTaller && 'rounded-bl-lg',
-          )}
-        >
-          {/* diff 高亮垫在底下；透明文字的 textarea 负责编辑 */}
+        <div className="relative w-[360px] shrink-0 self-stretch">
           <div
-            aria-hidden
-            className="pointer-events-none absolute inset-0 overflow-hidden px-4 py-2 text-[15px] leading-6 break-words whitespace-pre-wrap [overflow-wrap:anywhere]"
-          >
-            {diffParts
-              ? diffParts
-                  .filter((p) => p.t !== 'add')
-                  .map((p, i) =>
-                    p.t === 'del' ? (
-                      <span
-                        key={i}
-                        className="rounded-sm bg-red-500/20 text-red-700 dark:text-red-400"
-                      >
-                        {p.s}
-                      </span>
-                    ) : (
-                      <span key={i} className="text-muted-foreground">
-                        {p.s}
-                      </span>
-                    ),
-                  )
-              : (
-                <span className="text-muted-foreground">{original}</span>
-              )}
-          </div>
-          <textarea
-            ref={origRef}
-            value={original}
-            rows={1}
-            disabled={sending}
             className={cn(
-              areaClass,
-              'relative z-[1] min-h-full bg-transparent text-transparent caret-foreground',
+              'flex overflow-hidden border-r border-foreground/20',
+              origPunch
+                ? cn('absolute inset-x-0', paneChrome, 'rounded-l-lg')
+                : 'relative min-h-full',
+              ocrPunch && paneChrome,
+              ocrPunch && rightTaller && 'rounded-bl-lg',
             )}
-            onChange={(e: ChangeEvent<HTMLTextAreaElement>) => {
-              setOriginal(e.target.value)
-              autosize(e.currentTarget)
-            }}
-            onKeyDown={(e: KeyboardEvent<HTMLTextAreaElement>) => {
-              if (e.nativeEvent.isComposing) return
-              if (e.key !== 'Enter') return
-              e.preventDefault()
-              e.currentTarget.blur()
-              void run(original, false)
-            }}
-            onScroll={(e) => {
-              const bg = e.currentTarget.previousElementSibling as HTMLElement | null
-              if (bg) bg.scrollTop = e.currentTarget.scrollTop
-            }}
-          />
+            style={
+              origPunch
+                ? { top: origLayout.top, height: origLayout.height }
+                : undefined
+            }
+          >
+            {/* diff 高亮垫在底下；透明文字的 textarea 负责编辑 */}
+            <div
+              aria-hidden
+              className="pointer-events-none absolute inset-0 overflow-hidden px-4 py-2 text-[15px] leading-6 break-words whitespace-pre-wrap [overflow-wrap:anywhere]"
+            >
+              {diffParts
+                ? diffParts
+                    .filter((p) => p.t !== 'add')
+                    .map((p, i) =>
+                      p.t === 'del' ? (
+                        <span
+                          key={i}
+                          className="rounded-sm bg-red-500/20 text-red-700 dark:text-red-400"
+                        >
+                          {p.s}
+                        </span>
+                      ) : (
+                        <span key={i} className="text-muted-foreground">
+                          {p.s}
+                        </span>
+                      ),
+                    )
+                : (
+                  <span className="text-muted-foreground">{original}</span>
+                )}
+            </div>
+            <textarea
+              ref={origRef}
+              value={original}
+              rows={1}
+              disabled={sending}
+              className={cn(
+                areaClass,
+                'relative z-[1] min-h-full bg-transparent text-transparent caret-foreground',
+                origPunch && 'max-h-none',
+              )}
+              onChange={(e: ChangeEvent<HTMLTextAreaElement>) => {
+                setOriginal(e.target.value)
+                if (!origPunch) autosize(e.currentTarget)
+              }}
+              onKeyDown={(e: KeyboardEvent<HTMLTextAreaElement>) => {
+                if (e.nativeEvent.isComposing) return
+                if (e.key !== 'Enter') return
+                e.preventDefault()
+                e.currentTarget.blur()
+                void run(original, false)
+              }}
+              onScroll={(e) => {
+                const bg = e.currentTarget.previousElementSibling as HTMLElement | null
+                if (bg) bg.scrollTop = e.currentTarget.scrollTop
+              }}
+            />
+          </div>
+          {/* 原文上方挖空（对称 OCR 图下挖空） */}
+          {origPunch && origLayout.top > 0 ? (
+            <div
+              role="button"
+              tabIndex={-1}
+              aria-label="关闭"
+              className="absolute inset-x-0 top-0"
+              style={{ height: origLayout.top }}
+              onMouseDown={(e) => {
+                e.preventDefault()
+                e.stopPropagation()
+                void invoke('dismiss')
+              }}
+            />
+          ) : null}
+          {origPunch ? (
+            <div
+              role="button"
+              tabIndex={-1}
+              aria-label="关闭"
+              className="absolute inset-x-0 bottom-0"
+              style={{ top: origLayout.top + origLayout.height }}
+              onMouseDown={(e) => {
+                e.preventDefault()
+                e.stopPropagation()
+                void invoke('dismiss')
+              }}
+            />
+          ) : null}
         </div>
       ) : null}
 
@@ -543,21 +635,28 @@ export function Compose() {
           'flex min-w-[360px] flex-1 flex-col',
           ocrPunch && cn(paneChrome, 'rounded-r-lg'),
           ocrPunch && rightTaller && !showOrig && 'rounded-bl-lg',
+          origPunch && cn(paneChrome, 'rounded-r-lg rounded-tl-lg'),
         )}
         style={ocrPunch && shotH > 0 ? { minHeight: shotH } : undefined}
       >
-        {ocrDictOnly && dict ? (
-          <DictCard entry={dict} speakLang={language} />
-        ) : ocrPending ? (
+        {ocrPending ? (
           <>
-            <div className="overflow-y-auto px-4 py-2" style={topBoxStyle} />
-            <Separator className="bg-foreground/20" />
-            <div className="overflow-y-auto px-4 py-2" style={botBoxStyle} />
+            <div className="shrink-0 overflow-y-auto px-4 py-2" style={topBoxStyle} />
+            <Separator className="shrink-0 bg-foreground/20" />
+            <div className="shrink-0 overflow-y-auto px-4 py-2" style={botBoxStyle} />
           </>
         ) : (
           <>
             {waitInput ? (
-              <div className="overflow-y-auto px-4 py-2" style={topBoxStyle}>
+              <div
+                ref={topSecRef}
+                className="shrink-0 overflow-y-auto px-4 py-2"
+                style={
+                  paneLock
+                    ? { height: paneLock.top, minHeight: paneLock.top, maxHeight: paneLock.top }
+                    : topBoxStyle
+                }
+              >
                 {text.trim() ? (
                   <p className="text-[15px] leading-6 break-words whitespace-pre-wrap [overflow-wrap:anywhere] select-text">
                     {text}
@@ -569,9 +668,14 @@ export function Compose() {
               </div>
             ) : hasLeft ? (
               <p
-                className="overflow-y-auto px-4 py-2 text-[15px] leading-6 break-words whitespace-pre-wrap [overflow-wrap:anywhere] select-text"
+                ref={topSecRef}
+                className="shrink-0 overflow-y-auto px-4 py-2 text-[15px] leading-6 break-words whitespace-pre-wrap [overflow-wrap:anywhere] select-text"
                 style={
-                  english.trim() || (sending && !waitInput) ? topBoxStyle : soloBoxStyle
+                  paneLock
+                    ? { height: paneLock.top, minHeight: paneLock.top, maxHeight: paneLock.top }
+                    : english.trim() || (sending && !waitInput)
+                      ? topBoxStyle
+                      : soloBoxStyle
                 }
               >
                 {text.trim() ? text : '\u00a0'}
@@ -584,15 +688,18 @@ export function Compose() {
                 disabled={sending}
                 className={cn(
                   areaClass,
+                  'shrink-0',
                   ocrPreview?.src ? 'rounded-tr-lg' : 'rounded-t-lg',
                   ocrPunch && 'max-h-none',
                 )}
                 style={
-                  ocrPunch
-                    ? english.trim() || sending
-                      ? { minHeight: colMinTop, maxHeight: colMaxTop }
-                      : { minHeight: colMinSolo, maxHeight: colMaxSolo }
-                    : undefined
+                  paneLock
+                    ? { height: paneLock.top, minHeight: paneLock.top, maxHeight: paneLock.top }
+                    : ocrPunch
+                      ? english.trim() || sending
+                        ? { minHeight: colMinTop, maxHeight: colMaxTop }
+                        : { minHeight: colMinSolo, maxHeight: colMaxSolo }
+                      : undefined
                 }
                 onChange={(e: ChangeEvent<HTMLTextAreaElement>) => {
                   setText(e.target.value)
@@ -624,8 +731,16 @@ export function Compose() {
 
             {english.trim() || (sending && !waitInput) ? (
               <>
-                <Separator className="bg-foreground/20" />
-                <div className="flex items-start gap-1 overflow-y-auto px-4 py-2" style={botBoxStyle}>
+                <Separator className="shrink-0 bg-foreground/20" />
+                <div
+                  ref={botSecRef}
+                  className="flex shrink-0 items-start gap-1 overflow-y-auto px-4 py-2"
+                  style={
+                    paneLock && paneLock.bot > 0
+                      ? { height: paneLock.bot, minHeight: paneLock.bot, maxHeight: paneLock.bot }
+                      : botBoxStyle
+                  }
+                >
                   <div className="min-w-0 flex-1">
                     {english.trim() ? (
                       <p className="text-[15px] leading-6 break-words whitespace-pre-wrap [overflow-wrap:anywhere] select-text">
@@ -642,7 +757,9 @@ export function Compose() {
                                         ev.stopPropagation()
                                         if (!inTauri()) return
                                         void dictLookup(part)
-                                          .then((entry) => setDict(entry))
+                                          .then((entry) =>
+                                            setDict(entry ?? { word: part, senses: [] }),
+                                          )
                                           .catch(() => {})
                                       }}
                                     >
@@ -677,7 +794,9 @@ export function Compose() {
                                             ev.stopPropagation()
                                             if (!inTauri()) return
                                             void dictLookup(part)
-                                              .then((entry) => setDict(entry))
+                                              .then((entry) =>
+                                                setDict(entry ?? { word: part, senses: [] }),
+                                              )
                                               .catch(() => {})
                                           }}
                                         >
@@ -725,17 +844,19 @@ export function Compose() {
 
         {error ? (
           <>
-            <Separator />
-            <p className="px-4 py-2 text-sm break-words [overflow-wrap:anywhere] text-destructive">
+            <Separator className="shrink-0 bg-foreground/20" />
+            <p className="shrink-0 px-4 py-2 text-sm break-words [overflow-wrap:anywhere] text-destructive">
               {error}
             </p>
           </>
         ) : null}
 
-        {!ocrDictOnly && dict ? (
+        {dict ? (
           <>
-            <Separator />
-            <DictCard entry={dict} speakLang={language} />
+            <Separator className="shrink-0 bg-foreground/20" />
+            <div className="shrink-0">
+              <DictCard entry={dict} speakLang={language} />
+            </div>
           </>
         ) : null}
       </div>

@@ -7,6 +7,7 @@ import { listen } from '@tauri-apps/api/event'
 import { getCurrentWindow } from '@tauri-apps/api/window'
 import { loadSettings } from './api/settings'
 import {
+  composePunchAtom,
   composeShortcutAtom,
   languageAtom,
   nativeLanguageAtom,
@@ -30,6 +31,7 @@ export default function App() {
   const [, setSelectShortcut] = useAtom(selectShortcutAtom)
   const [, setOcrShortcut] = useAtom(ocrShortcutAtom)
   const [ocrPreview] = useAtom(ocrPreviewAtom)
+  const [composePunch] = useAtom(composePunchAtom)
 
   const cardRef = useRef<HTMLDivElement>(null)
   const sizeFloorRef = useRef<{ w: number; h: number } | null>(null)
@@ -152,11 +154,11 @@ export default function App() {
         <div
           className={cn(
             'min-w-[360px] text-card-foreground',
-            // OCR 图矮于文栏：外壳透明，图下方挖空
-            view === 'compose' && ocrPreview?.src
+            // OCR 图下 / 原文左上：外壳透明，露出挖空
+            view === 'compose' && (ocrPreview?.src || composePunch)
               ? 'bg-transparent'
               : [
-                  'rounded-lg bg-card ring-1 ring-foreground/10',
+                  'rounded-lg bg-card ring-1 ring-foreground/20',
                   'shadow-[0_1px_2px_rgb(0_0_0/0.16)] dark:shadow-[0_1px_2px_rgb(0_0_0/0.55)]',
                 ],
           )}
