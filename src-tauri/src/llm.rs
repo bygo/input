@@ -181,86 +181,60 @@ async fn analyze_one_attempt(
         "\n========== [LLM] select={select} into={into} mt_source={mt_source:?} ==========\n--- system ---\n{system}\n--- user ---\n{user}\n========== [/LLM prompt] ==========\n"
     );
 
-    // Compose (and select fallback): local LLM, then cloud.
-    // Empty `{}` / mixed-script output must not block cloud fallback.
-    if crate::local::ready().await {
-        match crate::local::chat(&system, &user).await {
-            Ok(raw) => {
-                eprintln!("\n========== [LLM local result] ==========\n{raw}\n========== [/LLM local result] ==========\n");
-                if let Some(sentences) = try_parse(&raw, text, into) {
+    // TEMP: 改写暂时只用本地千问，不回落云端 Haiku。
+    // Empty `{}` / mixed-script output must not block cloud fallback（云端暂关）。
+    let local_ok = crate::local::ready().await || crate::local::mt_ready().await;
+    if !local_ok {
+        return Err("本地千问未就绪（设置里打开本地模型）".into());
+    }
+    match crate::local::chat(&system, &user).await {
+        Ok(raw) => {
+            eprintln!("\n========== [LLM local result] ==========\n{raw}\n========== [/LLM local result] ==========\n");
+            if let Some(sentences) = try_parse(&raw, text, into) {
+                return Ok(Analysis {
+                    sentences,
+                    source: "local".into(),
+                });
+            }
+            let repair = format!(
+                "上一次输出不合格。请把下面整段改写成纯正{into}，保留换行；禁止残留源语言字符（含人名须音译）。只输出 JSON：{{\"sentences\":[\"...\"]}}。\n不合格译文：\n{raw}"
+            );
+            eprintln!("\n========== [LLM repair user] ==========\n{repair}\n========== [/LLM repair user] ==========\n");
+            if let Ok(raw2) = crate::local::chat(&system, &repair).await {
+                eprintln!("\n========== [LLM local repair result] ==========\n{raw2}\n========== [/LLM local repair result] ==========\n");
+                if let Some(sentences) = try_parse(&raw2, text, into) {
                     return Ok(Analysis {
                         sentences,
                         source: "local".into(),
                     });
                 }
-                let repair = format!(
-                    "上一次输出不合格。请把下面整段改写成纯正{into}，保留换行；禁止残留源语言字符（含人名须音译）。只输出 JSON：{{\"sentences\":[\"...\"]}}。\n不合格译文：\n{raw}"
-                );
-                eprintln!("\n========== [LLM repair user] ==========\n{repair}\n========== [/LLM repair user] ==========\n");
-                if let Ok(raw2) = crate::local::chat(&system, &repair).await {
-                    eprintln!("\n========== [LLM local repair result] ==========\n{raw2}\n========== [/LLM local repair result] ==========\n");
-                    if let Some(sentences) = try_parse(&raw2, text, into) {
+                if select {
+                    if let Some(sentences) = try_parse_loose(&raw2, text, into) {
+                        log_parse_fail(
+                            "local_repair_accept_loose",
+                            text,
+                            into,
+                            select,
+                            "local",
+                            &raw2,
+                        );
                         return Ok(Analysis {
                             sentences,
                             source: "local".into(),
                         });
                     }
-                    if select {
-                        if let Some(sentences) = try_parse_loose(&raw2, text, into) {
-                            log_parse_fail(
-                                "local_repair_accept_loose",
-                                text,
-                                into,
-                                select,
-                                "local",
-                                &raw2,
-                            );
-                            return Ok(Analysis {
-                                sentences,
-                                source: "local".into(),
-                            });
-                        }
-                    }
-                    log_parse_fail("local_repair_failed", text, into, select, "local", &raw2);
-                } else {
-                    log_parse_fail("local_empty_or_unparseable", text, into, select, "local", &raw);
                 }
+                log_parse_fail("local_repair_failed", text, into, select, "local", &raw2);
+            } else {
+                log_parse_fail("local_empty_or_unparseable", text, into, select, "local", &raw);
             }
-            Err(e) => {
-                log_parse_fail("local_error", text, into, select, "local", &e);
-                if is_empty_result_err(&e) {
-                    // 继续云端；真正空结果由外层重试。
-                }
-            }
+            return Err("本地千问输出无法解析".into());
+        }
+        Err(e) => {
+            log_parse_fail("local_error", text, into, select, "local", &e);
+            Err(e)
         }
     }
-
-    let raw = chat_with_system(&system, &user).await?;
-    eprintln!("\n========== [LLM cloud result] ==========\n{raw}\n========== [/LLM cloud result] ==========\n");
-    if let Some(sentences) = try_parse(&raw, text, into) {
-        return Ok(Analysis {
-            sentences,
-            source: "cloud".into(),
-        });
-    }
-    if select {
-        if let Some(sentences) = try_parse_loose(&raw, text, into) {
-            log_parse_fail(
-                "cloud_accept_loose",
-                text,
-                into,
-                select,
-                "cloud",
-                &raw,
-            );
-            return Ok(Analysis {
-                sentences,
-                source: "cloud".into(),
-            });
-        }
-    }
-    log_parse_fail("cloud_empty_or_unparseable", text, into, select, "cloud", &raw);
-    Err("模型返回为空".into())
 }
 
 async fn analyze_one(

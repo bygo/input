@@ -16,8 +16,6 @@ export const errorAtom = atom('')
 /** OCR crop preview: data-URL + natural pixel size for 1:1 layout without reflow */
 export type OcrPreview = { src: string; w: number; h: number }
 export const ocrPreviewAtom = atom<OcrPreview | null>(null)
-/** 手动原文左列：外壳透明，左上挖空 */
-export const composePunchAtom = atom(false)
 export const viewAtom = atom<'compose' | 'settings' | 'ocr'>('compose')
 export const languageAtom = atom('英语')
 export const nativeLanguageAtom = atom('中文')

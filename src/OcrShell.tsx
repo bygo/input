@@ -190,9 +190,9 @@ export function OcrShell({
           const imgW = crop.w
           const imgH = crop.h
           const imgPad = 8 // 截图四周底衬，与 Compose 一致
-          // 左图右文：宽 = 图 + 底衬 + 360 文栏；外层 p-3×2 = 24
-          const w = imgW + imgPad * 2 + 360 + 24
-          const h = Math.max(imgH + imgPad * 2, 80) + 24
+          // 上图下文：宽 = max(360, 图+底衬)；外层 p-3×2 = 24
+          const w = Math.max(360, imgW + imgPad * 2) + 24
+          const h = imgH + imgPad * 2 + 80 + 24
           sizeFloorRef.current = { w, h }
           onBlockResize(true)
           flowActive.current = true

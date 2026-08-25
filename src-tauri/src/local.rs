@@ -10,9 +10,11 @@ use std::time::Duration;
 use tauri::{AppHandle, Emitter, Manager};
 
 /// Rewrite / compose LLM.
+/// TEMP: 改写/翻译暂时都用千问；原改写 `qwen3:4b-instruct`，原翻译 `translategemma:4b`
 pub const MODEL: &str = "qwen3:4b-instruct";
-/// Select-translate dedicated MT (TranslateGemma).
-pub const MT_MODEL: &str = "translategemma:4b";
+/// Select-translate MT.
+/// TEMP: 与改写相同，暂用千问
+pub const MT_MODEL: &str = "qwen3:4b-instruct";
 pub const BASE_URL: &str = "http://127.0.0.1:11434";
 /// Old rewrite tags to drop after switching.
 const OBSOLETE_LLM: &[&str] = &["qwen3:4b"];
