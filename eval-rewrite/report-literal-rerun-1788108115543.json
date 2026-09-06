@@ -1,0 +1,77 @@
+{
+  "model": "qwen3:4b-instruct",
+  "rows": [
+    {
+      "original": "再说吧",
+      "rewrite": "Let's deal with it later."
+    },
+    {
+      "original": "回头再说",
+      "rewrite": "I'll get back to you later."
+    },
+    {
+      "original": "有空再说",
+      "rewrite": "Let's talk when you have time."
+    },
+    {
+      "original": "到时候再说",
+      "rewrite": "We'll see."
+    },
+    {
+      "original": "以后再说",
+      "rewrite": "We'll deal with it later."
+    },
+    {
+      "original": "改天再说",
+      "rewrite": "We'll see."
+    },
+    {
+      "original": "下次再说",
+      "rewrite": "We'll see."
+    },
+    {
+      "original": "等会儿再说",
+      "rewrite": "Let's deal with it later."
+    },
+    {
+      "original": "忙完再说",
+      "rewrite": "Once it's done, we'll deal with it later."
+    },
+    {
+      "original": "回头聊",
+      "rewrite": "Talk later."
+    },
+    {
+      "original": "定了再说",
+      "rewrite": "Once it's decided."
+    },
+    {
+      "original": "再说也不迟",
+      "rewrite": "We can always talk about it later."
+    },
+    {
+      "original": "再说我走了",
+      "rewrite": "Leave it for now. I'm out."
+    },
+    {
+      "original": "吃完再说",
+      "rewrite": "Let's talk about it after we finish eating."
+    },
+    {
+      "original": "回去再说",
+      "rewrite": "I'll get back to you later."
+    },
+    {
+      "original": "上车再说",
+      "rewrite": "Let's talk once we're on the road."
+    },
+    {
+      "original": "先这样，回头再说",
+      "rewrite": "Alright, let's go with that for now. I'll get back to you later."
+    },
+    {
+      "original": "我再想想，明天再说",
+      "rewrite": "Let me think about it. We'll talk about it tomorrow."
+    }
+  ]
+}

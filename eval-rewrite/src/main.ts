@@ -12,7 +12,6 @@ type DiffPart = { t: 'eq' | 'del' | 'add'; s: string }
 
 const MODELS = [
   { id: 'qwen3:4b-instruct', label: '千问' },
-  { id: 'translategemma:4b', label: 'TranslateGemma' },
 ] as const
 /** 生成 case / 效果分析用 */
 const GEN_MODEL = 'qwen3:4b-instruct'
@@ -122,8 +121,9 @@ function stats() {
 
 async function ollamaChat(
   model: string,
-  prompt: string,
+  messages: { role: string, content: string }[],
   options: Record<string, unknown>,
+  format?: unknown,
 ) {
   const resp = await fetch('/ollama/api/chat', {
     method: 'POST',
@@ -132,7 +132,8 @@ async function ollamaChat(
       model,
       stream: false,
       options,
-      messages: [{ role: 'user', content: prompt }],
+      ...(format ? { format } : {}),
+      messages,
     }),
   })
   const body = await resp.text()
@@ -143,12 +144,70 @@ async function ollamaChat(
   return out
 }
 
+const HAS_HAN = /[\u3400-\u4DBF\u4E00-\u9FFF\uF900-\uFAFF]/
+
+/** 与 app select_prompt（英语）对齐 */
+function selectPromptEn() {
+  return `你是翻译器：把【原文】译成地道的英语。目标语言是英语。
+只输出一个 JSON 对象：{"sentences":["完整英语表达"]}。禁止 markdown、解释、思考。
+
+硬性规则：
+- 原文不是英语：翻译成母语者日常会说的英语；禁止扩写、脑补场景
+- 忠于原意与人称：原文没写明的主语、宾语、归属、对象、因果、关系一律禁止添加
+- 地道优先：口语、习语、语气词按英语习惯意译，禁止字字对译；宁可短而自然，不要长而直译
+- 「再说」的「说」≠ speak/talk，按结构选义：①时间/条件+再说或再说吧=搁置→leave it / after… / until… / once…，禁止 talk about / discuss it；②动作+再说=… first；③句首再说+人称/评价=Besides / Anyway；须保留时间条件，禁止只输出 Later
+- 决定权交给对方、观望结局、不愿再提等口语，按英语习惯意译，禁止字字对译
+- 禁止回答问题；问句仍输出问句
+- 最多 3 条，第一条最自然且贴原意
+- 禁止中英夹杂；禁止残留汉字`
+}
+
+function parseFirstSentence(raw: string) {
+  const start = raw.indexOf('{')
+  const end = raw.lastIndexOf('}')
+  if (start < 0 || end < 0) return raw.split('\n')[0].trim()
+  try {
+    const v = JSON.parse(raw.slice(start, end + 1)) as { sentences?: unknown[] }
+    const s = v.sentences?.map(x => String(x ?? '').trim()).find(Boolean)
+    return s || raw.trim()
+  } catch {
+    return raw.trim()
+  }
+}
+
 async function rewriteOne(text: string, into: string) {
   const toEn = into.includes('英语') || into.includes('英文')
+  // 中文稿 → 英语：走选中翻译 prompt（测直译）
+  if (toEn && HAS_HAN.test(text)) {
+    const raw = await ollamaChat(
+      rewriteModel,
+      [
+        { role: 'system', content: selectPromptEn() },
+        {
+          role: 'user',
+          content: (() => {
+            const hint = /再说|回头聊/.test(text)
+              ? '\n注意：「再说」按结构：搁置=leave it / after… / until… / once…（禁止 talk about / discuss it）；动作+再说=… first；句首再说我/你=Besides / Anyway。保留时间与条件，禁止只输出 Later.'
+              : ''
+            return `目标语言：英语。把【原文】译成地道英语（口语习语用意译，禁止字面直译）。\n禁止添加原文未写的对象/关系。${hint}\n【原文】\n${text}`
+          })(),
+        },
+      ],
+      { temperature: 0.2 },
+      {
+        type: 'object',
+        properties: {
+          sentences: { type: 'array', items: { type: 'string' }, minItems: 1 },
+        },
+        required: ['sentences'],
+      },
+    )
+    return parseFirstSentence(raw)
+  }
   const prompt = toEn
     ? `You are fixing an on-screen English draft.\nFix only clear grammar mistakes. Keep the same meaning, person (I/you/me/my/your), tense, and structure.\nDo NOT swap I/you or me/you. Do NOT answer, chat, or paraphrase for style.\nIf already fine, return it unchanged (fix capitalization/punctuation only if needed).\nOutput only the corrected English, nothing else.\n\n【原文】\n${text}`
     : `把下面原文改成正确的${into}。只修语法，保留原意与人称，禁止对调 I/you。不要回答或扩写。只输出一句${into}，不要解释。\n\n【原文】\n${text}`
-  return ollamaChat(rewriteModel, prompt, { temperature: 0.1 })
+  return ollamaChat(rewriteModel, [{ role: 'user', content: prompt }], { temperature: 0.1 })
 }
 
 function localMetrics() {
@@ -195,20 +254,20 @@ async function analyzeModel() {
     }))
   if (samples.length === 0) throw new Error('请先跑出至少一条「原文+改写」')
 
-  const prompt = `你是本地改写模型评测分析师。根据指标与样本，用中文写一份简洁分析报告。
-改写模型: ${m.model}
+  const prompt = `你是中→英翻译评测分析师。重点判断是否「直译腔」（字字对译、不像母语者口语）。
+模型: ${m.model}
 指标 JSON: ${JSON.stringify(m)}
-样本(最多40条) JSON: ${JSON.stringify(samples)}
+样本 JSON: ${JSON.stringify(samples)}
 
 请输出：
-1) 总体结论（是否可用、主要风险）
-2) 量化解读（通过率、未改动比例、疑似人称对调等）
-3) 典型好例 / 坏例各 1～3 条（引用原文→改写）
-4) 错误模式归类（语法微修、语义漂移、人称对调、过度改写等）
-5) 可执行改进建议（prompt / 温度 / 后处理校验）
+1) 总体结论（地道度、直译比例粗估）
+2) 明确标出直译坏例：原文 → 译文，并给出更地道写法
+3) 好例 1～3 条
+4) 错误模式（字面直译「再说」→say、语气词残留、加戏等）
+5) prompt 改进建议
 不要编造样本里没有的句子。`
 
-  return ollamaChat(GEN_MODEL, prompt, {
+  return ollamaChat(GEN_MODEL, [{ role: 'user', content: prompt }], {
     temperature: 0.3,
     num_predict: 2048,
   })
@@ -229,7 +288,7 @@ async function generateCases(n: number, into: string) {
     ? `You generate eval cases for an English grammar-fix IME.\nBatch seeds: [${seeds.join(', ')}]. Use them only as diversity entropy; each sentence should feel different.\nProduce EXACTLY ${n} short English drafts a non-native might type (grammar errors welcome: agreement, tense, articles, I/you mix-ups, missing words).\nVary hard across the batch: statements / questions / requests / offers; topics (work email, PR comment, chat, travel, food, school); mistake types.\nDo NOT resemble existing cases: ${avoidLine}\nOutput ONLY a JSON array of ${n} strings. No markdown, no keys, no commentary.`
     : `你在为「改写成${into}」评测造用例。\n本批种子: [${seeds.join(', ')}]。只当多样性熵，每句要明显不同。\n生成恰好 ${n} 条短草稿（可含语病）。\n强制拉开：陈述/疑问/请求/提议；话题与错误类型都要多样。\n不要与已有用例相似：${avoidLine}\n只输出 JSON 字符串数组，长度 ${n}。不要 markdown，不要解释。`
 
-  const raw = await ollamaChat(GEN_MODEL, prompt, {
+  const raw = await ollamaChat(GEN_MODEL, [{ role: 'user', content: prompt }], {
     temperature: 1.1,
     seed: seeds[0],
     num_predict: Math.min(4096, 100 * n + 300),
@@ -254,9 +313,14 @@ async function generateCases(n: number, into: string) {
   for (let i = list.length; i < n; i++) {
     const one = await ollamaChat(
       GEN_MODEL,
-      toEn
-        ? `Seed: ${seeds[i]}. Write ONE short flawed English draft for grammar-fix eval. Different from: ${avoid.slice(-5).join(' | ')}. Output only the sentence.`
-        : `种子 ${seeds[i]}。写 1 条评测用短${into}草稿（可有语病）。不要与这些重复：${avoid.slice(-5).join(' | ')}。只输出句子。`,
+      [
+        {
+          role: 'user',
+          content: toEn
+            ? `Seed: ${seeds[i]}. Write ONE short flawed English draft for grammar-fix eval. Different from: ${avoid.slice(-5).join(' | ')}. Output only the sentence.`
+            : `种子 ${seeds[i]}。写 1 条评测用短${into}草稿（可有语病）。不要与这些重复：${avoid.slice(-5).join(' | ')}。只输出句子。`,
+        },
+      ],
       { temperature: 1.15, seed: seeds[i], num_predict: 120 },
     )
     const line = one
@@ -318,6 +382,7 @@ function render() {
         </select>
       </label>
       <button class="primary" id="runAll" ${busy ? 'disabled' : ''}>全部跑一遍</button>
+      <button id="loadLiteral" ${busy ? 'disabled' : ''}>加载直译集</button>
       <button id="add" ${busy ? 'disabled' : ''}>加一行</button>
       <label>数量 <input type="number" id="addN" min="1" max="200" value="${escapeAttr(addN)}" style="width:56px" /></label>
       <button id="addMany" ${busy ? 'disabled' : ''}>生成 N 条</button>
@@ -380,6 +445,31 @@ function render() {
   })
   document.querySelector('#runAll')?.addEventListener('click', () => {
     void runAll((document.querySelector('#into') as HTMLSelectElement).value)
+  })
+  document.querySelector('#loadLiteral')?.addEventListener('click', () => {
+    if (busy) return
+    void fetch('/cases-literal-zh.json')
+      .then(r => r.json())
+      .then((list: string[]) => {
+        rows.length = 0
+        const used = new Set<number>()
+        for (const original of list) {
+          rows.push({
+            original,
+            rewrite: '',
+            seed: allocSeed(used),
+            status: '',
+            error: '',
+          })
+        }
+        const intoEl = document.querySelector('#into') as HTMLSelectElement | null
+        if (intoEl) intoEl.value = '英语'
+        render()
+      })
+      .catch((e) => {
+        analysisText = `加载直译集失败: ${String(e)}`
+        render()
+      })
   })
   document.querySelector('#add')?.addEventListener('click', () => {
     rows.push({ original: '', rewrite: '', seed: null, status: '', error: '' })
@@ -507,8 +597,8 @@ function escapeAttr(s: string) {
   return escapeHtml(s).replaceAll('\n', ' ')
 }
 
-void fetch('/cases.json')
-  .then((r) => r.json())
+void fetch('/cases-literal-zh.json')
+  .then(r => r.json())
   .then((list: string[]) => {
     const used = new Set<number>()
     for (const original of list) {

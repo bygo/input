@@ -1,5 +1,5 @@
-const isMac =
-  typeof navigator !== 'undefined' && /mac/i.test(navigator.platform || navigator.userAgent)
+const isMac
+  = typeof navigator !== 'undefined' && /mac/i.test(navigator.platform || navigator.userAgent)
 
 const MOD_LABEL: Record<string, string> = isMac
   ? {
@@ -43,31 +43,47 @@ const MOD_CODES = new Set([
 ])
 
 function keyLabel(token: string) {
-  const t = token.replace(/^(Key|Digit)/i, '')
-  if (/^arrow(up|down|left|right)$/i.test(t)) {
+  const t = token.replace(/^(?:Key|Digit)/i, '')
+  if (/^arrow(?:up|down|left|right)$/i.test(t)) {
     return { up: '↑', down: '↓', left: '←', right: '→' }[t.slice(5).toLowerCase()] ?? t
   }
-  if (/^[a-z]$/i.test(t)) return t.toUpperCase()
-  if (t.toLowerCase() === 'space') return 'Space'
-  if (t.toLowerCase() === 'escape') return 'Esc'
-  if (t.toLowerCase() === 'enter') return 'Enter'
+  if (/^[a-z]$/i.test(t)) {
+    return t.toUpperCase()
+  }
+  if (t.toLowerCase() === 'space') {
+    return 'Space'
+  }
+  if (t.toLowerCase() === 'escape') {
+    return 'Esc'
+  }
+  if (t.toLowerCase() === 'enter') {
+    return 'Enter'
+  }
   return t.length === 1 ? t.toUpperCase() : t
 }
 
 export function formatShortcut(raw: string) {
   const parts = raw
     .split('+')
-    .map((p) => p.trim())
+    .map(p => p.trim())
     .filter(Boolean)
-  if (!parts.length) return ''
-  const shown = parts.map((p) => MOD_LABEL[p.toLowerCase()] ?? keyLabel(p))
+  if (!parts.length) {
+    return ''
+  }
+  const shown = parts.map(p => MOD_LABEL[p.toLowerCase()] ?? keyLabel(p))
   return isMac ? shown.join('') : shown.join('+')
 }
 
 export function codeToken(code: string): string | null {
-  if (!code || MOD_CODES.has(code)) return null
-  if (/^Key[A-Z]$/.test(code)) return code.slice(3)
-  if (/^Digit[0-9]$/.test(code)) return code.slice(5)
+  if (!code || MOD_CODES.has(code)) {
+    return null
+  }
+  if (/^Key[A-Z]$/.test(code)) {
+    return code.slice(3)
+  }
+  if (/^Digit\d$/.test(code)) {
+    return code.slice(5)
+  }
   return code
 }
 
@@ -79,12 +95,22 @@ function hasAlt(e: {
   code: string
   getModifierState?: (key: string) => boolean
 }) {
-  if (e.altKey) return true
-  if (e.getModifierState?.('Alt') || e.getModifierState?.('AltGraph')) return true
-  if (e.metaKey || e.ctrlKey) return false
+  if (e.altKey) {
+    return true
+  }
+  if (e.getModifierState?.('Alt') || e.getModifierState?.('AltGraph')) {
+    return true
+  }
+  if (e.metaKey || e.ctrlKey) {
+    return false
+  }
   const token = codeToken(e.code)
-  if (!token || !/^[A-Z]$/i.test(token)) return false
-  if (e.key === 'Dead' || e.key === 'Process') return true
+  if (!token || !/^[A-Z]$/i.test(token)) {
+    return false
+  }
+  if (e.key === 'Dead' || e.key === 'Process') {
+    return true
+  }
   return e.key.length === 1 && e.key.toLowerCase() !== token.toLowerCase()
 }
 
@@ -98,14 +124,26 @@ export function shortcutFromEvent(e: {
   getModifierState?: (key: string) => boolean
 }): string | null {
   const token = codeToken(e.code)
-  if (!token) return null
-  const fn = /^F([1-9]|1[0-9]|2[0-4])$/.test(token)
+  if (!token) {
+    return null
+  }
+  const fn = /^F(?:[1-9]|1\d|2[0-4])$/.test(token)
   const parts: string[] = []
-  if (e.metaKey) parts.push('Command')
-  if (e.ctrlKey) parts.push('Control')
-  if (hasAlt(e)) parts.push('Alt')
-  if (e.shiftKey) parts.push('Shift')
-  if (!parts.length && !fn) return null
+  if (e.metaKey) {
+    parts.push('Command')
+  }
+  if (e.ctrlKey) {
+    parts.push('Control')
+  }
+  if (hasAlt(e)) {
+    parts.push('Alt')
+  }
+  if (e.shiftKey) {
+    parts.push('Shift')
+  }
+  if (!parts.length && !fn) {
+    return null
+  }
   parts.push(token)
   return parts.join('+')
 }

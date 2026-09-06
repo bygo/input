@@ -1,0 +1,206 @@
+{
+  "model": "qwen3.5:4b",
+  "note": "strong-generalizable-prompt",
+  "rows": [
+    {
+      "original": "我看看再说",
+      "rewrite": "I'll take a look and then we'll see."
+    },
+    {
+      "original": "明天再说",
+      "rewrite": "After tomorrow."
+    },
+    {
+      "original": "再说吧",
+      "rewrite": "Leave it."
+    },
+    {
+      "original": "回头再说",
+      "rewrite": "Let's talk later."
+    },
+    {
+      "original": "有空再说",
+      "rewrite": "Later."
+    },
+    {
+      "original": "到时候再说",
+      "rewrite": "We'll see."
+    },
+    {
+      "original": "过两天再说",
+      "rewrite": "Let's see."
+    },
+    {
+      "original": "以后再说",
+      "rewrite": "Later."
+    },
+    {
+      "original": "改天再说",
+      "rewrite": "Let's do it another time."
+    },
+    {
+      "original": "下次再说",
+      "rewrite": "Later."
+    },
+    {
+      "original": "等会儿再说",
+      "rewrite": "Later."
+    },
+    {
+      "original": "忙完再说",
+      "rewrite": "After I'm done."
+    },
+    {
+      "original": "先这样吧",
+      "rewrite": "Let's do that for now."
+    },
+    {
+      "original": "先放一放",
+      "rewrite": "Let's put it aside."
+    },
+    {
+      "original": "先不说了",
+      "rewrite": "Let's see."
+    },
+    {
+      "original": "算了吧",
+      "rewrite": "Never mind."
+    },
+    {
+      "original": "得了吧",
+      "rewrite": "Never mind."
+    },
+    {
+      "original": "随便你",
+      "rewrite": "Up to you."
+    },
+    {
+      "original": "你看着办",
+      "rewrite": "Up to you."
+    },
+    {
+      "original": "怎么说呢",
+      "rewrite": "You know."
+    },
+    {
+      "original": "不好说",
+      "rewrite": "Not sure."
+    },
+    {
+      "original": "看情况",
+      "rewrite": "Depends."
+    },
+    {
+      "original": "走着瞧",
+      "rewrite": "We'll see."
+    },
+    {
+      "original": "差不多了",
+      "rewrite": "That's enough."
+    },
+    {
+      "original": "差不多得了",
+      "rewrite": "Enough."
+    },
+    {
+      "original": "行吧",
+      "rewrite": "Alright."
+    },
+    {
+      "original": "好吧",
+      "rewrite": "Alright."
+    },
+    {
+      "original": "随缘吧",
+      "rewrite": "Leave it."
+    },
+    {
+      "original": "别提了",
+      "rewrite": "Never mind."
+    },
+    {
+      "original": "怎么搞的",
+      "rewrite": "What's going on."
+    },
+    {
+      "original": "搞什么呢",
+      "rewrite": "What's up?"
+    },
+    {
+      "original": "回头聊",
+      "rewrite": "Talk later."
+    },
+    {
+      "original": "回头跟你说",
+      "rewrite": "I'll tell you later."
+    },
+    {
+      "original": "有消息再说",
+      "rewrite": "We'll see."
+    },
+    {
+      "original": "定了再说",
+      "rewrite": "Once it's decided."
+    },
+    {
+      "original": "确认了再说",
+      "rewrite": "Once confirmed."
+    },
+    {
+      "original": "商量再说",
+      "rewrite": "Let's discuss it first."
+    },
+    {
+      "original": "考虑一下再说",
+      "rewrite": "Think about it first."
+    },
+    {
+      "original": "研究研究再说",
+      "rewrite": "Let's do some research first."
+    },
+    {
+      "original": "看看再说定",
+      "rewrite": "Check it first."
+    },
+    {
+      "original": "再说也不迟",
+      "rewrite": "It's not too late."
+    },
+    {
+      "original": "再说我忙",
+      "rewrite": "Besides, I'm busy."
+    },
+    {
+      "original": "再说我走了",
+      "rewrite": "I'm off."
+    },
+    {
+      "original": "吃完再说",
+      "rewrite": "After we eat."
+    },
+    {
+      "original": "回去再说",
+      "rewrite": "Let's see."
+    },
+    {
+      "original": "上车再说",
+      "rewrite": "Let's see once we're in the car."
+    },
+    {
+      "original": "如何读书呢",
+      "rewrite": "How do you read?"
+    },
+    {
+      "original": "怎么弄啊",
+      "rewrite": "What do we do?"
+    },
+    {
+      "original": "先这样，回头再说",
+      "rewrite": "Do this for now, we'll see."
+    },
+    {
+      "original": "我再想想，明天再说",
+      "rewrite": "I'll think about it. We'll see tomorrow."
+    }
+  ]
+}

@@ -1,0 +1,256 @@
+{
+  "model": "translategemma:4b",
+  "into": "英语",
+  "rows": [
+    {
+      "original": "我看看再说",
+      "rewrite": "Let me take a look.",
+      "error": null
+    },
+    {
+      "original": "明天再说",
+      "rewrite": "Let's talk about it tomorrow.",
+      "error": null
+    },
+    {
+      "original": "再说吧",
+      "rewrite": "Let's talk about it later.",
+      "error": null
+    },
+    {
+      "original": "回头再说",
+      "rewrite": "We'll talk about it later.",
+      "error": null
+    },
+    {
+      "original": "有空再说",
+      "rewrite": "Let's talk about it later.",
+      "error": null
+    },
+    {
+      "original": "到时候再说",
+      "rewrite": "We'll see how it goes.",
+      "error": null
+    },
+    {
+      "original": "过两天再说",
+      "rewrite": "We can talk about it later.",
+      "error": null
+    },
+    {
+      "original": "以后再说",
+      "rewrite": "We can talk about it later.",
+      "error": null
+    },
+    {
+      "original": "改天再说",
+      "rewrite": "We can talk about it another time.",
+      "error": null
+    },
+    {
+      "original": "下次再说",
+      "rewrite": "We can discuss this later.",
+      "error": null
+    },
+    {
+      "original": "等会儿再说",
+      "rewrite": "Let's talk about it later.",
+      "error": null
+    },
+    {
+      "original": "忙完再说",
+      "rewrite": "We'll talk about it later.",
+      "error": null
+    },
+    {
+      "original": "先这样吧",
+      "rewrite": "Let's just do it this way for now.",
+      "error": null
+    },
+    {
+      "original": "先放一放",
+      "rewrite": "Let's hold on for a minute.",
+      "error": null
+    },
+    {
+      "original": "先不说了",
+      "rewrite": "Let's move on.",
+      "error": null
+    },
+    {
+      "original": "算了吧",
+      "rewrite": "Never mind.",
+      "error": null
+    },
+    {
+      "original": "得了吧",
+      "rewrite": "Come on.",
+      "error": null
+    },
+    {
+      "original": "随便你",
+      "rewrite": "Whatever.",
+      "error": null
+    },
+    {
+      "original": "你看着办",
+      "rewrite": "What are you going to do now?",
+      "error": null
+    },
+    {
+      "original": "怎么说呢",
+      "rewrite": "How should I say it?",
+      "error": null
+    },
+    {
+      "original": "不好说",
+      "rewrite": "I don't know what to say.",
+      "error": null
+    },
+    {
+      "original": "看情况",
+      "rewrite": "It depends.",
+      "error": null
+    },
+    {
+      "original": "走着瞧",
+      "rewrite": "Let's see how it goes.",
+      "error": null
+    },
+    {
+      "original": "差不多了",
+      "rewrite": "That's about it.",
+      "error": null
+    },
+    {
+      "original": "差不多得了",
+      "rewrite": "That's enough.",
+      "error": null
+    },
+    {
+      "original": "行吧",
+      "rewrite": "Okay then.",
+      "error": null
+    },
+    {
+      "original": "好吧",
+      "rewrite": "Okay.",
+      "error": null
+    },
+    {
+      "original": "随缘吧",
+      "rewrite": "Let it be.",
+      "error": null
+    },
+    {
+      "original": "别提了",
+      "rewrite": "Let's not talk about it.",
+      "error": null
+    },
+    {
+      "original": "怎么搞的",
+      "rewrite": "How do I do this?",
+      "error": null
+    },
+    {
+      "original": "搞什么呢",
+      "rewrite": "What are you doing?",
+      "error": null
+    },
+    {
+      "original": "回头聊",
+      "rewrite": "Let's catch up later.",
+      "error": null
+    },
+    {
+      "original": "回头跟你说",
+      "rewrite": "I'll let you know later.",
+      "error": null
+    },
+    {
+      "original": "有消息再说",
+      "rewrite": "I'll get back to you with more information.",
+      "error": null
+    },
+    {
+      "original": "定了再说",
+      "rewrite": "Okay, let's do it.",
+      "error": null
+    },
+    {
+      "original": "确认了再说",
+      "rewrite": "Confirmed.",
+      "error": null
+    },
+    {
+      "original": "商量再说",
+      "rewrite": "Let's discuss it later.",
+      "error": null
+    },
+    {
+      "original": "考虑一下再说",
+      "rewrite": "Let's think about that later.",
+      "error": null
+    },
+    {
+      "original": "研究研究再说",
+      "rewrite": "Let me investigate that further.",
+      "error": null
+    },
+    {
+      "original": "看看再说定",
+      "rewrite": "We'll see how it goes.",
+      "error": null
+    },
+    {
+      "original": "再说也不迟",
+      "rewrite": "It's never too late.",
+      "error": null
+    },
+    {
+      "original": "再说我忙",
+      "rewrite": "Besides, I'm busy.",
+      "error": null
+    },
+    {
+      "original": "再说我走了",
+      "rewrite": "I'm heading out now.",
+      "error": null
+    },
+    {
+      "original": "吃完再说",
+      "rewrite": "We'll talk about it after we've eaten.",
+      "error": null
+    },
+    {
+      "original": "回去再说",
+      "rewrite": "We'll talk about it later.",
+      "error": null
+    },
+    {
+      "original": "上车再说",
+      "rewrite": "Let's hop in and talk about it.",
+      "error": null
+    },
+    {
+      "original": "如何读书呢",
+      "rewrite": "How should I read it?",
+      "error": null
+    },
+    {
+      "original": "怎么弄啊",
+      "rewrite": "How do I do this?",
+      "error": null
+    },
+    {
+      "original": "先这样，回头再说",
+      "rewrite": "Let's just do this first, and we can talk about it later.",
+      "error": null
+    },
+    {
+      "original": "我再想想，明天再说",
+      "rewrite": "I'll think about it, and we can talk about it tomorrow.",
+      "error": null
+    }
+  ]
+}

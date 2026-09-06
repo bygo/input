@@ -1,0 +1,506 @@
+{
+  "model": "qwen3.5:4b",
+  "into": "英语",
+  "rows": [
+    {
+      "original": "明天再说",
+      "rewrite": "Let's leave it for tomorrow.",
+      "error": null
+    },
+    {
+      "original": "有空再说",
+      "rewrite": "Let's leave it for when you're free.",
+      "error": null
+    },
+    {
+      "original": "定了再说",
+      "rewrite": "Let's leave it for when it's confirmed.",
+      "error": null
+    },
+    {
+      "original": "吃完再说",
+      "rewrite": "Let's wait until after we've finished eating.",
+      "error": null
+    },
+    {
+      "original": "我看看再说",
+      "rewrite": "I'll take a look and then decide.",
+      "error": null
+    },
+    {
+      "original": "考虑一下再说",
+      "rewrite": "Think about it and we'll see.",
+      "error": null
+    },
+    {
+      "original": "再说吧",
+      "rewrite": "Let's leave it for now.",
+      "error": null
+    },
+    {
+      "original": "再说我忙",
+      "rewrite": "I'm busy, so let's leave it for now.",
+      "error": null
+    },
+    {
+      "original": "再说也不迟",
+      "rewrite": "It's not too late to do it now.",
+      "error": null
+    },
+    {
+      "original": "忙完再说",
+      "rewrite": "Let's do it after I'm done.",
+      "error": null
+    },
+    {
+      "original": "随便你",
+      "rewrite": "Up to you.",
+      "error": null
+    },
+    {
+      "original": "你看着办",
+      "rewrite": "You decide.",
+      "error": null
+    },
+    {
+      "original": "你定就行",
+      "rewrite": "You decide.",
+      "error": null
+    },
+    {
+      "original": "听你的",
+      "rewrite": "Up to you.",
+      "error": null
+    },
+    {
+      "original": "随你便",
+      "rewrite": "Up to you.",
+      "error": null
+    },
+    {
+      "original": "你说了算",
+      "rewrite": "You decide.",
+      "error": null
+    },
+    {
+      "original": "我没意见",
+      "rewrite": "I'm fine with it.",
+      "error": null
+    },
+    {
+      "original": "都行",
+      "rewrite": "It's fine.",
+      "error": null
+    },
+    {
+      "original": "你安排吧",
+      "rewrite": "Leave it to you.",
+      "error": null
+    },
+    {
+      "original": "随缘吧",
+      "rewrite": "Let's leave it to fate.",
+      "error": null
+    },
+    {
+      "original": "算了吧",
+      "rewrite": "Let's drop it.",
+      "error": null
+    },
+    {
+      "original": "得了吧",
+      "rewrite": "Nah.",
+      "error": null
+    },
+    {
+      "original": "先这样吧",
+      "rewrite": "Let's do it this way for now.",
+      "error": null
+    },
+    {
+      "original": "先放一放",
+      "rewrite": "Let's put it aside for now.",
+      "error": null
+    },
+    {
+      "original": "别提了",
+      "rewrite": "Never mind.",
+      "error": null
+    },
+    {
+      "original": "拉倒吧",
+      "rewrite": "Forget it.",
+      "error": null
+    },
+    {
+      "original": "不说了",
+      "rewrite": "Let's leave it at that.",
+      "error": null
+    },
+    {
+      "original": "到此为止",
+      "rewrite": "That's all.",
+      "error": null
+    },
+    {
+      "original": "罢了",
+      "rewrite": "That's it.",
+      "error": null
+    },
+    {
+      "original": "没必要了",
+      "rewrite": "Not necessary anymore.",
+      "error": null
+    },
+    {
+      "original": "看情况",
+      "rewrite": "It depends.",
+      "error": null
+    },
+    {
+      "original": "不好说",
+      "rewrite": "Hard to say.",
+      "error": null
+    },
+    {
+      "original": "怎么说呢",
+      "rewrite": "Well, you know.",
+      "error": null
+    },
+    {
+      "original": "走着瞧",
+      "rewrite": "Let's see.",
+      "error": null
+    },
+    {
+      "original": "说不准",
+      "rewrite": "It's uncertain.",
+      "error": null
+    },
+    {
+      "original": "难说",
+      "rewrite": "Hard to say.",
+      "error": null
+    },
+    {
+      "original": "到时候看",
+      "rewrite": "We'll see.",
+      "error": null
+    },
+    {
+      "original": "不一定",
+      "rewrite": "Not necessarily.",
+      "error": null
+    },
+    {
+      "original": "谁知道呢",
+      "rewrite": "Who knows.",
+      "error": null
+    },
+    {
+      "original": "拭目以待",
+      "rewrite": "wait and see",
+      "error": null
+    },
+    {
+      "original": "差不多了",
+      "rewrite": "It's about done.",
+      "error": null
+    },
+    {
+      "original": "差不多得了",
+      "rewrite": "That's enough.",
+      "error": null
+    },
+    {
+      "original": "行吧",
+      "rewrite": "Alright.",
+      "error": null
+    },
+    {
+      "original": "好吧",
+      "rewrite": "Alright.",
+      "error": null
+    },
+    {
+      "original": "还行",
+      "rewrite": "Not bad.",
+      "error": null
+    },
+    {
+      "original": "凑合吧",
+      "rewrite": "Let's make do.",
+      "error": null
+    },
+    {
+      "original": "马马虎虎",
+      "rewrite": "Good enough.",
+      "error": null
+    },
+    {
+      "original": "就这样",
+      "rewrite": "That's it.",
+      "error": null
+    },
+    {
+      "original": "可以了",
+      "rewrite": "That's it.",
+      "error": null
+    },
+    {
+      "original": "差不多意思",
+      "rewrite": "About the same.",
+      "error": null
+    },
+    {
+      "original": "回头聊",
+      "rewrite": "Let's chat later.",
+      "error": null
+    },
+    {
+      "original": "改天约",
+      "rewrite": "Let's catch up sometime.",
+      "error": null
+    },
+    {
+      "original": "有空再联系",
+      "rewrite": "Let's catch up later.",
+      "error": null
+    },
+    {
+      "original": "先这样，回头聊",
+      "rewrite": "Let's do this for now, and we'll catch up later.",
+      "error": null
+    },
+    {
+      "original": "保持联系",
+      "rewrite": "Keep in touch.",
+      "error": null
+    },
+    {
+      "original": "到了说一声",
+      "rewrite": "let me know when you arrive",
+      "error": null
+    },
+    {
+      "original": "到了告诉我",
+      "rewrite": "Let me know when you arrive.",
+      "error": null
+    },
+    {
+      "original": "路上小心",
+      "rewrite": "Watch out on the road.",
+      "error": null
+    },
+    {
+      "original": "先走了",
+      "rewrite": "I'm off now.",
+      "error": null
+    },
+    {
+      "original": "我先挂了",
+      "rewrite": "I'll hang up now.",
+      "error": null
+    },
+    {
+      "original": "怎么搞的",
+      "rewrite": "What's going on?",
+      "error": null
+    },
+    {
+      "original": "搞什么呢",
+      "rewrite": "What's going on?",
+      "error": null
+    },
+    {
+      "original": "靠谱吗",
+      "rewrite": "Is it reliable?",
+      "error": null
+    },
+    {
+      "original": "闹哪出",
+      "rewrite": "What's going on?",
+      "error": null
+    },
+    {
+      "original": "什么情况",
+      "rewrite": "What's going on?",
+      "error": null
+    },
+    {
+      "original": "又来了",
+      "rewrite": "It's back again.",
+      "error": null
+    },
+    {
+      "original": "离谱",
+      "rewrite": "That's ridiculous.",
+      "error": null
+    },
+    {
+      "original": "无语了",
+      "rewrite": "I'm speechless.",
+      "error": null
+    },
+    {
+      "original": "服了",
+      "rewrite": "I give up.",
+      "error": null
+    },
+    {
+      "original": "太过分了",
+      "rewrite": "That's too much.",
+      "error": null
+    },
+    {
+      "original": "怎么弄啊",
+      "rewrite": "What do we do?",
+      "error": null
+    },
+    {
+      "original": "咋整",
+      "rewrite": "what do we do",
+      "error": null
+    },
+    {
+      "original": "搞定了没",
+      "rewrite": "Is it done?",
+      "error": null
+    },
+    {
+      "original": "有着落没",
+      "rewrite": "Got it sorted?",
+      "error": null
+    },
+    {
+      "original": "进度如何",
+      "rewrite": "How's it going?",
+      "error": null
+    },
+    {
+      "original": "卡在哪了",
+      "rewrite": "What's going on?",
+      "error": null
+    },
+    {
+      "original": "谁负责",
+      "rewrite": "Who's in charge?",
+      "error": null
+    },
+    {
+      "original": "能不能快点",
+      "rewrite": "Hurry up.",
+      "error": null
+    },
+    {
+      "original": "还有多久",
+      "rewrite": "How much longer?",
+      "error": null
+    },
+    {
+      "original": "下一步怎么办",
+      "rewrite": "What's next?",
+      "error": null
+    },
+    {
+      "original": "别摸鱼了",
+      "rewrite": "Stop slacking off.",
+      "error": null
+    },
+    {
+      "original": "又踩坑了",
+      "rewrite": "Hit a snag again.",
+      "error": null
+    },
+    {
+      "original": "给个准话",
+      "rewrite": "Give me a straight answer.",
+      "error": null
+    },
+    {
+      "original": "先对齐一下",
+      "rewrite": "Let's align first.",
+      "error": null
+    },
+    {
+      "original": "拉个群说",
+      "rewrite": "start a group chat",
+      "error": null
+    },
+    {
+      "original": "同步一下进度",
+      "rewrite": "Let's sync up on the progress.",
+      "error": null
+    },
+    {
+      "original": "别甩锅",
+      "rewrite": "Don't pass the buck.",
+      "error": null
+    },
+    {
+      "original": "这锅谁背",
+      "rewrite": "Who's taking the fall?",
+      "error": null
+    },
+    {
+      "original": "上线了吗",
+      "rewrite": "Is it up and running?",
+      "error": null
+    },
+    {
+      "original": "回个邮件吧",
+      "rewrite": "Send an email.",
+      "error": null
+    },
+    {
+      "original": "想多了",
+      "rewrite": "Overthinking it.",
+      "error": null
+    },
+    {
+      "original": "少来",
+      "rewrite": "Cut it out.",
+      "error": null
+    },
+    {
+      "original": "爱谁谁",
+      "rewrite": "Who cares.",
+      "error": null
+    },
+    {
+      "original": "关我什么事",
+      "rewrite": "What's it got to do with me?",
+      "error": null
+    },
+    {
+      "original": "你开心就好",
+      "rewrite": "as long as you're happy",
+      "error": null
+    },
+    {
+      "original": "别自作多情",
+      "rewrite": "Don't read too much into it.",
+      "error": null
+    },
+    {
+      "original": "我才不信",
+      "rewrite": "I don't believe it.",
+      "error": null
+    },
+    {
+      "original": "随你怎么想",
+      "rewrite": "Take it or leave it.",
+      "error": null
+    },
+    {
+      "original": "爱答不理",
+      "rewrite": "Ignore him.",
+      "error": null
+    },
+    {
+      "original": "懒得理你",
+      "rewrite": "I don't feel like dealing with you.",
+      "error": null
+    }
+  ]
+}
