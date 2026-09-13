@@ -1,6 +1,6 @@
 # input
 
-全局快捷键呼出输入框，用大模型批改英语语法。
+全局快捷键呼出输入框，用本地大模型批改英语语法。
 
 ## 开发
 
@@ -13,13 +13,13 @@ bun run tauri dev
 
 ## 配置
 
-设置写在 `~/input-workspace/settings.json`。默认走内置云端，安装即可用，**不必配 Key**。
+设置写在 `~/input-workspace/settings.json`。首次启动会自动安装本地推理运行时并下载千问 2B 模型；模型文件保存在 `~/input-workspace/ollama`。
 
 快捷键、母语等可在托盘 → 设置里改。
 
-### 自备 Key / 本地模型（兜底，不是功能）
+所有 AI 处理都在本机运行，不需要 API Key。首次下载需要网络连接，模型下载完成后可离线使用。
 
-配自己的 API Key、或安装本地模型，只是云端不可用时的退路，**不作为产品能力对外宣传**。日常用法以开箱即用为准。
+官网：<https://input-4gv.pages.dev>
 
 ## Windows 打包
 

@@ -24,6 +24,7 @@ async fn preload_models(app: &AppHandle) {
 
 pub async fn boot(app: AppHandle) {
     if !settings::read().local_model {
+        let _ = install_local_model(app).await;
         return;
     }
     if !running().await {
@@ -97,6 +98,9 @@ pub async fn install_local_model(app: AppHandle) -> Result<(), String> {
 
 async fn install_inner(app: &AppHandle) -> Result<(), String> {
     emit(app, "install", "准备安装…", 2);
+    let mut s = settings::read();
+    s.llm_model = settings::default_llm_model();
+    settings::write(&s)?;
     let bin = match resolve_bin() {
         Some(p) => p,
         None => download_ollama(app).await?,

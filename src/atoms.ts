@@ -6,7 +6,7 @@ export interface Analysis {
   sentences: string[]
   /** 改写一次附带的中文；翻译路径可空 */
   native?: string | null
-  source: 'local' | 'cloud' | 'passthrough' | string
+  source: 'local' | 'passthrough' | string
 }
 
 export type { DictEntry }

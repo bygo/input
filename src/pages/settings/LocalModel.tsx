@@ -3,15 +3,13 @@ import { useCallback, useEffect, useState } from 'react'
 import { cn } from '@/lib/utils'
 import {
   deleteLlmModel,
-  installLocal,
   localStatus,
   type LocalStatus,
   pullLlmModel,
   setLlmModel,
-  setLocal,
 } from '../../api/local'
 
-/** 本地千问：开关、4B/8B 下载与选用。 */
+/** 本地千问：模型下载与选用。 */
 export function LocalModel({ onError }: { onError: (message: string) => void }) {
   const [st, setSt] = useState<LocalStatus | null>(null)
 
@@ -41,37 +39,7 @@ export function LocalModel({ onError }: { onError: (message: string) => void }) 
     <div className="flex flex-col gap-2 border-t border-border pt-3">
       <div className="flex items-center justify-between gap-3">
         <span className="text-[16px]">本地模型</span>
-        <button
-          type="button"
-          disabled={busy}
-          aria-label="本地模型"
-          className={cn(
-            'min-w-[7.5rem] rounded-lg border px-3 py-1.5 text-center text-[16px]',
-            st.enabled
-              ? 'border-foreground/40 bg-muted'
-              : 'border-border hover:bg-muted/50',
-            busy && 'opacity-50',
-          )}
-          onClick={() => {
-            onError('')
-            const next = !st.enabled
-            void (async () => {
-              try {
-                if (next && !st.hasModel) {
-                  await installLocal()
-                } else {
-                  await setLocal(next)
-                }
-                refresh()
-              } catch (e) {
-                onError(String(e))
-                refresh()
-              }
-            })()
-          }}
-        >
-          {st.enabled ? '开' : '关'}
-        </button>
+        <span className="text-[14px] text-muted-foreground">AI 仅在本机运行</span>
       </div>
 
       {(st.models ?? []).map(row => {

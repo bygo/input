@@ -33,7 +33,7 @@ fn default_auto_grammar() -> bool {
 }
 
 pub fn default_llm_model() -> String {
-    "qwen3.5:4b".into()
+    "qwen3.5:2b".into()
 }
 
 pub fn default_dict_pack() -> String {

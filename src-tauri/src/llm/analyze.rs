@@ -3,7 +3,7 @@ use std::fs;
 use std::time::{Instant, SystemTime, UNIX_EPOCH};
 use tauri::{AppHandle, Emitter};
 
-use super::client::{chat_once, chat_once_plain, cloud_api_key, llm_debug, CLOUD_MODEL};
+use super::client::{chat_once, chat_once_plain, llm_debug};
 use crate::llm_parse::{
     bad_excerpt, is_empty_result_err, split_translate_chunks, try_parse, try_parse_loose, Analysis,
 };
@@ -37,11 +37,7 @@ fn log_parse_fail(reason: &str, text: &str, into: &str, select: bool, source: &s
         .map(|d| d.as_millis())
         .unwrap_or(0);
     let path = dir.join(format!("parse-{ms}.json"));
-    let model = if source == "local" {
-        crate::local::active_model()
-    } else {
-        CLOUD_MODEL.to_string()
-    };
+    let model = crate::local::active_model();
     let body = json!({
         "reason": reason,
         "text": text,
@@ -102,19 +98,11 @@ async fn analyze_one_attempt(
 
 
     let t = Instant::now();
-    let use_cloud = cloud_api_key().is_ok();
-    if !use_cloud && !crate::local::ready().await {
-        return Err(
-            "未配置 Grok 密钥，且本地千问未就绪（设置里打开本地模型，或写入 ~/input-workspace/xai_api_key）"
-                .into(),
-        );
+    if !crate::local::ready().await {
+        return Err("本地模型尚未就绪，请等待首次下载完成".into());
     }
-    let source = if use_cloud { "cloud" } else { "local" };
-    let model = if use_cloud {
-        CLOUD_MODEL.to_string()
-    } else {
-        crate::local::active_model()
-    };
+    let source = "local";
+    let model = crate::local::active_model();
     eprintln!(
         "[LLM] route source={source} model={model} {}ms",
         t.elapsed().as_millis()
@@ -138,7 +126,7 @@ async fn analyze_one_attempt(
     }
 
     let t = Instant::now();
-    match chat_once(&system, &user, use_cloud).await {
+    match chat_once(&system, &user).await {
         Ok(raw) => {
             eprintln!(
                 "[LLM] chat ok source={source} out={}B {}ms",
@@ -215,7 +203,7 @@ async fn analyze_one_attempt(
             eprintln!("--- repair user ---\n{repair}");
         }
         let t = Instant::now();
-        match chat_once(&system, &repair, use_cloud).await {
+        match chat_once(&system, &repair).await {
             Ok(raw2) => {
                 eprintln!(
                     "[LLM] repair#{round} chat ok out={}B {}ms",
@@ -510,8 +498,7 @@ pub async fn sentence_grammar(sentence: String) -> Result<String, String> {
     if sentence.is_empty() {
         return Err("缺少句子".into());
     }
-    let use_cloud = cloud_api_key().is_ok();
-    if !use_cloud && !crate::local::ready().await {
+    if !crate::local::ready().await {
         return Err("模型未就绪".into());
     }
     let raw = chat_once_plain(
@@ -521,7 +508,6 @@ pub async fn sentence_grammar(sentence: String) -> Result<String, String> {
 禁止翻译英文块或整句；禁止堆语法术语；禁止空泛标签；能少则少。
 格式：每块一行，「原块 → 解释」。不要输出 JSON。"#,
         sentence,
-        use_cloud,
     )
     .await?;
     grammar_parts(&raw).ok_or_else(|| "空结果".to_string())
@@ -540,14 +526,12 @@ pub async fn grammar_ask(
     if sentence.is_empty() || question.is_empty() {
         return Err("缺少句子或问题".into());
     }
-    let use_cloud = cloud_api_key().is_ok();
-    if !use_cloud && !crate::local::ready().await {
+    if !crate::local::ready().await {
         return Err("模型未就绪".into());
     }
     let raw = chat_once_plain(
         "根据已有句子解析回答追问。一两句中文，直接说清楚。不要复述问题，不要整句翻译，不要输出 JSON。",
         &format!("句：{sentence}\n解析：{grammar}\n问：{question}"),
-        use_cloud,
     )
     .await?;
     gloss_line(&raw).ok_or_else(|| "空结果".to_string())
