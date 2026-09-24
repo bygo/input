@@ -4,6 +4,7 @@ import {
   dictAtom,
   englishAtom,
   errorAtom,
+  loadTopAtom,
   ocrPreviewAtom,
   sendingAtom,
   textAtom,
@@ -18,7 +19,7 @@ import { usePaneLayout } from './usePaneLayout'
 import { usePipeline } from './usePipeline'
 
 /**
- * 单列： [OCR?] → 输入 → 英语结果 → 词卡
+ * 单列： [OCR?] → 输入 → 英语结果（点词出词卡）→ 词卡
  */
 export function Compose() {
   usePipeline()
@@ -28,20 +29,23 @@ export function Compose() {
   const text = useAtomValue(textAtom)
   const english = useAtomValue(englishAtom)
   const sending = useAtomValue(sendingAtom)
+  const loadTop = useAtomValue(loadTopAtom)
   const error = useAtomValue(errorAtom)
   const dict = useAtomValue(dictAtom)
   const ocrPreview = useAtomValue(ocrPreviewAtom)
 
   const imgW = ocrPreview?.w && ocrPreview.w > 0 ? ocrPreview.w : 0
   const ocrPad = imgW > 0 ? 8 : 0
-  const boxW = Math.max(360, imgW > 0 ? imgW + ocrPad * 2 : 0)
+  const boxW = Math.max(540, imgW > 0 ? imgW + ocrPad * 2 : 0)
   const ocrPending
     = !!ocrPreview?.src && !sending && !text.trim() && !english.trim() && !error
   const wordOnly = !!dict && !english.trim() && !ocrPreview?.src
+  // 有上栏内容、上栏加载中，或尚未出英语结果时才占上栏；避免划词瞬间空白闪一下
+  const showTop = !!text.trim() || loadTop || (!english.trim() && !sending)
 
   if (wordOnly) {
     return (
-      <div className="flex w-[360px] min-w-[360px] flex-col rounded-lg">
+      <div className="flex w-[540px] min-w-[540px] flex-col rounded-lg">
         <DictCard />
       </div>
     )
@@ -49,7 +53,7 @@ export function Compose() {
 
   return (
     <div
-      className="flex min-w-[360px] flex-col"
+      className="flex min-w-[540px] flex-col"
       style={{ width: boxW }}
       aria-busy={sending || undefined}
     >
@@ -65,7 +69,7 @@ export function Compose() {
           )
         : (
             <>
-              <Native />
+              {showTop && <Native />}
               <English />
             </>
           )}
@@ -73,7 +77,7 @@ export function Compose() {
       {error && (
         <>
           <Separator className="shrink-0 bg-foreground/10" />
-          <p className="shrink-0 px-4 py-2 text-sm break-words [overflow-wrap:anywhere] text-destructive">
+          <p className="shrink-0 px-4 py-2 text-[16px] break-words [overflow-wrap:anywhere] text-destructive">
             {error}
           </p>
         </>

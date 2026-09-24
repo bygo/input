@@ -36,13 +36,13 @@ export function DictPack({ onError }: { onError: (message: string) => void }) {
 
   return (
     <div className="flex flex-col gap-2 border-t border-border pt-3">
-      <span className="text-sm">词典</span>
+      <span className="text-[16px]">词典</span>
 
       {st.packs.map((row) => {
         const active = row.id === st.pack
         return (
           <div key={row.id} className="flex items-center justify-between gap-2">
-            <div className="min-w-0 text-sm">
+            <div className="min-w-0 text-[16px]">
               <span className="font-medium">{row.label}</span>
               <span className="ml-2 text-muted-foreground">{row.detail}</span>
             </div>
@@ -52,7 +52,7 @@ export function DictPack({ onError }: { onError: (message: string) => void }) {
                     <button
                       type="button"
                       disabled={busy}
-                      className="rounded-lg border border-border px-2.5 py-1 text-sm hover:bg-muted/50 disabled:opacity-50"
+                      className="rounded-lg border border-border px-2.5 py-1 text-[16px] hover:bg-muted/50 disabled:opacity-50"
                       onClick={() => {
                         onError('')
                         void pullDictPack(row.id)
@@ -68,7 +68,7 @@ export function DictPack({ onError }: { onError: (message: string) => void }) {
                   )
                 : active
                   ? (
-                      <span className="rounded-lg border border-foreground/40 bg-muted px-2.5 py-1 text-sm">
+                      <span className="rounded-lg border border-foreground/40 bg-muted px-2.5 py-1 text-[16px]">
                         使用中
                       </span>
                     )
@@ -77,7 +77,7 @@ export function DictPack({ onError }: { onError: (message: string) => void }) {
                         <button
                           type="button"
                           disabled={busy}
-                          className="rounded-lg border border-border px-2.5 py-1 text-sm hover:bg-muted/50 disabled:opacity-50"
+                          className="rounded-lg border border-border px-2.5 py-1 text-[16px] hover:bg-muted/50 disabled:opacity-50"
                           onClick={() => {
                             onError('')
                             void setDictPack(row.id)
@@ -94,7 +94,7 @@ export function DictPack({ onError }: { onError: (message: string) => void }) {
                           <button
                             type="button"
                             disabled={busy}
-                            className="rounded-lg border border-border px-2.5 py-1 text-sm hover:bg-muted/50 disabled:opacity-50"
+                            className="rounded-lg border border-border px-2.5 py-1 text-[16px] hover:bg-muted/50 disabled:opacity-50"
                             onClick={() => {
                               onError('')
                               void deleteDictPack(row.id)
@@ -116,7 +116,7 @@ export function DictPack({ onError }: { onError: (message: string) => void }) {
       })}
 
       {(busy || st.message) && (
-        <p className="text-xs text-muted-foreground">
+        <p className="text-[16px] text-muted-foreground">
           {st.message || '…'}
           {busy && ` ${st.percent}%`}
         </p>

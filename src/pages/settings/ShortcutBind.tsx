@@ -102,13 +102,13 @@ export function ShortcutBind({
 
   return (
     <div className="flex items-center justify-between gap-3">
-      <span className="text-sm">{label}</span>
+      <span className="text-[16px]">{label}</span>
       <button
         ref={btnRef}
         type="button"
         aria-label={label}
         className={cn(
-          'min-w-[7.5rem] rounded-lg border px-3 py-1.5 text-center text-sm tabular-nums',
+          'min-w-[7.5rem] rounded-lg border px-3 py-1.5 text-center text-[16px] tabular-nums',
           recording ? 'border-foreground/40 bg-muted' : 'border-border hover:bg-muted/50',
         )}
         onClick={() => {

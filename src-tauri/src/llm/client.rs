@@ -11,8 +11,17 @@ pub(crate) fn llm_debug() -> bool {
 }
 
 
-pub(crate) const CLOUD_BASE: &str = "https://api.x.ai/v1";
+pub(crate) const CLOUD_BASE_DEFAULT: &str = "https://api.x.ai/v1";
 pub(crate) const CLOUD_MODEL: &str = "grok-4.6";
+
+/// 正式：https://api.x.ai/v1；临时代理：如 http://127.0.0.1:8181/v1
+pub(crate) fn cloud_base() -> String {
+    std::env::var("XAI_BASE_URL")
+        .ok()
+        .map(|s| s.trim().trim_end_matches('/').to_string())
+        .filter(|s| !s.is_empty())
+        .unwrap_or_else(|| CLOUD_BASE_DEFAULT.to_string())
+}
 
 pub(crate) fn cloud_api_key() -> Result<String, String> {
     if let Ok(k) = std::env::var("XAI_API_KEY") {
@@ -34,13 +43,15 @@ pub(crate) fn cloud_api_key() -> Result<String, String> {
 
 pub(crate) async fn chat_with_system(system: &str, user: &str) -> Result<String, String> {
     let api_key = cloud_api_key()?;
+    let base = cloud_base();
     let client = reqwest::Client::builder()
         .timeout(Duration::from_secs(90))
         .build()
         .map_err(|e| e.to_string())?;
-    let url = format!("{}/chat/completions", CLOUD_BASE.trim_end_matches('/'));
+    let url = format!("{}/chat/completions", base.trim_end_matches('/'));
+    eprintln!("[LLM] cloud POST {url} model={CLOUD_MODEL}");
     let resp = client
-        .post(url)
+        .post(&url)
         .header("Authorization", format!("Bearer {api_key}"))
         .header("Content-Type", "application/json")
         .json(&json!({
@@ -57,7 +68,7 @@ pub(crate) async fn chat_with_system(system: &str, user: &str) -> Result<String,
             if e.is_timeout() {
                 "请求超时".into()
             } else if e.is_connect() {
-                format!("无法连接: {e}")
+                format!("无法连接 {base}: {e}")
             } else {
                 e.to_string()
             }
@@ -66,7 +77,7 @@ pub(crate) async fn chat_with_system(system: &str, user: &str) -> Result<String,
     let text = resp.text().await.map_err(|e| e.to_string())?;
     if !status.is_success() {
         if status.as_u16() == 401 {
-            return Err("Grok API Key 无效".into());
+            return Err("Grok API Key 无效（本地代理则填代理显示的本地密钥）".into());
         }
         return Err(format!("Grok 接口 {status}: {text}"));
     }
@@ -85,5 +96,17 @@ pub(crate) async fn chat_once(system: &str, user: &str, use_cloud: bool) -> Resu
         chat_with_system(system, user).await
     } else {
         crate::local::chat(system, user).await
+    }
+}
+
+pub(crate) async fn chat_once_plain(
+    system: &str,
+    user: &str,
+    use_cloud: bool,
+) -> Result<String, String> {
+    if use_cloud {
+        chat_with_system(system, user).await
+    } else {
+        crate::local::chat_plain(system, user).await
     }
 }

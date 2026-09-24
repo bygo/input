@@ -77,6 +77,8 @@ pub fn dict_speak(app: AppHandle, word: String, lang: Option<String>) -> Result<
                 if let Some(v) = voice {
                     c.args(["-v", v]);
                 }
+                // 与 NSSpeechSynthesizer setRate:200 对齐（say -r 单位同为近似 wpm）
+                c.args(["-r", "200"]);
                 let ok = c
                     .arg("-o")
                     .arg(&tmp)

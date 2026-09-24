@@ -42,6 +42,8 @@ pub fn run() {
         .manage(dict::managed())
         .invoke_handler(tauri::generate_handler![
             llm::analyze::analyze,
+            llm::analyze::sentence_grammar,
+            llm::analyze::grammar_ask,
             paste::paste_back::paste_back,
             local::status::local_model_status,
             local::install::install_local_model,
@@ -53,6 +55,8 @@ pub fn run() {
             settings::commands::set_target_language,
             settings::commands::set_native_language,
             settings::commands::set_select_speak,
+            settings::commands::set_show_native,
+            settings::commands::set_auto_grammar,
             hotkeys::commands::set_shortcut,
             hotkeys::commands::begin_shortcut_capture,
             hotkeys::commands::end_shortcut_capture,

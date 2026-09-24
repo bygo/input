@@ -17,6 +17,7 @@ export function OcrPick({
 }) {
   const [origin, setOrigin] = useState<Pt | null>(null)
   const [curr, setCurr] = useState<Pt | null>(null)
+  const [pointer, setPointer] = useState<Pt | null>(null)
   const dragging = useRef(false)
   const latest = useRef<{ origin: Pt | null, curr: Pt | null }>({ origin: null, curr: null })
   const imgSize = useRef({ w: 0, h: 0 })
@@ -94,7 +95,7 @@ export function OcrPick({
   const point = (e: ReactMouseEvent): Pt => ({ x: e.clientX, y: e.clientY })
 
   return (
-    <div className="fixed inset-0 z-[100] cursor-crosshair select-none overflow-hidden bg-black">
+    <div className="fixed inset-0 z-[100] cursor-none select-none overflow-hidden bg-black">
       {freeze && (
         <img
           ref={imgRef}
@@ -118,18 +119,21 @@ export function OcrPick({
           }
           dragging.current = true
           const p = point(e)
+          setPointer(p)
           latest.current = { origin: p, curr: p }
           setOrigin(p)
           setCurr(p)
         }}
         onMouseMove={(e) => {
+          const p = point(e)
+          setPointer(p)
           if (!dragging.current || finishing.current) {
             return
           }
-          const p = point(e)
           latest.current.curr = p
           setCurr(p)
         }}
+        onMouseLeave={() => setPointer(null)}
         onMouseUp={() => {
           if (!dragging.current || finishing.current) {
             return
@@ -154,6 +158,30 @@ export function OcrPick({
               <div className="pointer-events-none absolute inset-0 bg-black/35" />
             )}
       </div>
+      {pointer && (
+        <svg
+          className="pointer-events-none absolute z-[110] size-9 -translate-x-1/2 -translate-y-1/2"
+          style={{ left: pointer.x, top: pointer.y }}
+          viewBox="0 0 36 36"
+          fill="none"
+          aria-hidden
+        >
+          <path
+            d="M18 3v9M18 24v9M3 18h9M24 18h9"
+            stroke="#000"
+            strokeWidth="2.5"
+            strokeLinecap="round"
+            opacity="0.4"
+          />
+          <path
+            d="M18 3v9M18 24v9M3 18h9M24 18h9"
+            stroke="#fff"
+            strokeWidth="1.25"
+            strokeLinecap="round"
+          />
+          <circle cx="18" cy="18" r="1.1" fill="#fff" stroke="#000" strokeWidth="0.7" strokeOpacity="0.35" />
+        </svg>
+      )}
       <div className="pointer-events-none absolute top-3 left-1/2 -translate-x-1/2 rounded-md bg-black/70 px-3 py-1.5 text-xs text-white">
         拖选文字区域 · Esc 取消
       </div>

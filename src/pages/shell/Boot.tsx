@@ -6,12 +6,14 @@ import { flushSync } from 'react-dom'
 import { inTauri } from '@/lib/dom'
 import { loadSettings } from '../../api/settings'
 import {
+  autoGrammarAtom,
   composeShortcutAtom,
   languageAtom,
   nativeLanguageAtom,
   ocrShortcutAtom,
   selectShortcutAtom,
   selectSpeakAtom,
+  showNativeAtom,
   viewAtom,
 } from '../../atoms'
 import { blockWindowResize, sizeFloorRef } from './geometry'
@@ -29,6 +31,8 @@ export function Boot({
   const [, setSelectShortcut] = useAtom(selectShortcutAtom)
   const [, setOcrShortcut] = useAtom(ocrShortcutAtom)
   const [, setSelectSpeak] = useAtom(selectSpeakAtom)
+  const [, setShowNative] = useAtom(showNativeAtom)
+  const [, setAutoGrammar] = useAtom(autoGrammarAtom)
 
   useEffect(() => {
     if (!inTauri()) {
@@ -49,6 +53,12 @@ export function Boot({
         }
         if (typeof s.selectSpeak === 'boolean') {
           setSelectSpeak(s.selectSpeak)
+        }
+        if (typeof s.showNative === 'boolean') {
+          setShowNative(s.showNative)
+        }
+        if (typeof s.autoGrammar === 'boolean') {
+          setAutoGrammar(s.autoGrammar)
         }
       })
       .catch(() => {})
@@ -77,7 +87,7 @@ export function Boot({
       unSettings.then(f => f())
       unHidden.then(f => f())
     }
-  }, [setView, setLanguage, setNative, setComposeShortcut, setSelectShortcut, setOcrShortcut, setSelectSpeak, setSizeEpoch])
+  }, [setView, setLanguage, setNative, setComposeShortcut, setSelectShortcut, setOcrShortcut, setSelectSpeak, setShowNative, setAutoGrammar, setSizeEpoch])
 
   return null
 }

@@ -1,6 +1,6 @@
 use super::db::open_at;
 use super::entry::{is_wordlike, lemma_candidates, parse_senses};
-use super::lookup::{query_exact, query_via_exchange};
+use super::lookup::{phonetic_from_lemma, query_exact, query_via_exchange, with_regular_s_phone};
 use super::pack::validate_db;
 use super::path::{active_pack, full_db_path};
 use rusqlite::Connection;
@@ -76,4 +76,38 @@ fn full_pack_contains_if_installed() {
         .expect("contains headword");
     assert!(!e.senses.is_empty());
     assert!(active_pack() == "full" || active_pack() == "slim");
+}
+
+#[test]
+fn regular_s_phone_appends_ending() {
+    assert_eq!(
+        with_regular_s_phone("/.viʒuәlai''zeiʃәn/", "visualizations", "visualization"),
+        "/.viʒuәlai''zeiʃәnz/"
+    );
+    assert_eq!(with_regular_s_phone("/'kæt/", "cats", "cat"), "/'kæts/");
+    assert_eq!(with_regular_s_phone("/'bɒks/", "boxes", "box"), "/'bɒksiz/");
+    assert_eq!(
+        with_regular_s_phone("/'rʌniŋ/", "running", "run"),
+        "/'rʌniŋ/"
+    );
+}
+
+#[test]
+fn empty_phonetic_fills_from_lemma_if_full_pack() {
+    let Ok(p) = full_db_path() else {
+        return;
+    };
+    if !p.is_file() {
+        return;
+    }
+    let conn = open_at(&p).unwrap();
+    let exact = query_exact(&conn, "visualizations")
+        .unwrap()
+        .expect("visualizations headword");
+    assert!(exact.phonetic.is_none(), "fixture: surface has no phonetic");
+    let filled = phonetic_from_lemma(&conn, "visualizations")
+        .unwrap()
+        .expect("lemma phonetic");
+    assert!(filled.contains('z'), "plural ending on lemma IPA: {filled}");
+    assert!(filled.contains("zeiʃәn") || filled.contains("zeiʃən"), "{filled}");
 }

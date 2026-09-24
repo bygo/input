@@ -76,3 +76,19 @@ pub fn set_select_speak(enabled: bool) -> Result<Settings, String> {
     write(&s)?;
     Ok(s)
 }
+
+#[tauri::command]
+pub fn set_show_native(enabled: bool) -> Result<Settings, String> {
+    let mut s = read();
+    s.show_native = enabled;
+    write(&s)?;
+    Ok(s)
+}
+
+#[tauri::command]
+pub fn set_auto_grammar(enabled: bool) -> Result<Settings, String> {
+    let mut s = read();
+    s.auto_grammar = enabled;
+    write(&s)?;
+    Ok(s)
+}

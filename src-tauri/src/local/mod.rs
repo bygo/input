@@ -7,5 +7,5 @@ pub mod status;
 
 pub use catalog::{active_model, is_catalog_model};
 pub use install::boot;
-pub use ollama::{chat, ready};
+pub use ollama::{chat, chat_plain, ready};
 pub use state::managed;

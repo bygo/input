@@ -121,20 +121,24 @@ pub fn is_speaking() -> bool {
     synth || afplay_playing()
 }
 
+/// 默认约 175，略提至 200，长句不拖沓。
+const RATE: f32 = 200.0;
+
 pub fn speak(word: &str, voice: Option<&str>) {
     let syn = synth(voice);
     let s = ns_string(word);
     unsafe {
+        let _: () = msg_send![syn, setRate: RATE];
         let _: () = msg_send![syn, stopSpeaking];
         let _: bool = msg_send![syn, startSpeakingString: s];
     }
 }
 
-
 pub fn warm(voice: Option<&str>) {
     let syn = synth(voice);
     let s = ns_string(" ");
     unsafe {
+        let _: () = msg_send![syn, setRate: RATE];
         let _: bool = msg_send![syn, startSpeakingString: s];
         let _: () = msg_send![syn, stopSpeaking];
     }

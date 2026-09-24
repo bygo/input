@@ -102,6 +102,7 @@ fn native_from(v: &serde_json::Value) -> Option<String> {
     None
 }
 
+
 pub(crate) fn extract_json(raw: &str) -> Result<Analysis, String> {
     let mut last = None;
     for slice in json_objects(raw) {

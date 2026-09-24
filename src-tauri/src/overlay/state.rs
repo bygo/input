@@ -4,7 +4,7 @@ use std::time::Instant;
 use tauri::Manager;
 
 
-pub const OVERLAY_W: f64 = 384.0;
+pub const OVERLAY_W: f64 = 564.0;
 
 pub const OVERLAY_H: f64 = 105.0;
 

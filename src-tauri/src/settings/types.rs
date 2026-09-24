@@ -24,6 +24,14 @@ fn default_select_speak() -> bool {
     true
 }
 
+fn default_show_native() -> bool {
+    true
+}
+
+fn default_auto_grammar() -> bool {
+    false
+}
+
 pub fn default_llm_model() -> String {
     "qwen3.5:4b".into()
 }
@@ -56,6 +64,12 @@ pub struct Settings {
 
     #[serde(default = "default_select_speak")]
     pub select_speak: bool,
+    /// 是否显示中文对照
+    #[serde(default = "default_show_native")]
+    pub show_native: bool,
+    /// 译出英语后是否自动做块级语义解析；关则点词才解析
+    #[serde(default = "default_auto_grammar")]
+    pub auto_grammar: bool,
 }
 
 impl Default for Settings {
@@ -70,6 +84,8 @@ impl Default for Settings {
             select_shortcut: default_select_shortcut(),
             ocr_shortcut: default_ocr_shortcut(),
             select_speak: default_select_speak(),
+            show_native: default_show_native(),
+            auto_grammar: default_auto_grammar(),
         }
     }
 }

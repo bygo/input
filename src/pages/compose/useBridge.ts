@@ -1,5 +1,6 @@
-import { useSetAtom, useStore } from 'jotai'
+import type { Analysis } from '../../atoms'
 import { listen } from '@tauri-apps/api/event'
+import { useSetAtom, useStore } from 'jotai'
 import { useEffect } from 'react'
 import { inTauri } from '@/lib/dom'
 import { looksEnglish } from '@/lib/text'
@@ -8,14 +9,16 @@ import {
   dictAtom,
   englishAtom,
   errorAtom,
+  grammarAtom,
+  grammarBusyAtom,
   inputElAtom,
   nativeAtom,
   ocrPreviewAtom,
   resultAtom,
   sendingAtom,
+  showNativeAtom,
   textAtom,
   toNativeAtom,
-  type Analysis,
 } from '../../atoms'
 import { bumpComposeReq, composeReqId, composeRunAtom } from './usePipeline'
 
@@ -43,6 +46,8 @@ export function useBridge() {
       store.set(textAtom, '')
       store.set(englishAtom, '')
       store.set(nativeAtom, '')
+      store.set(grammarAtom, '')
+      store.set(grammarBusyAtom, false)
       store.set(resultAtom, null)
       store.set(dictAtom, null)
       store.set(errorAtom, '')
@@ -65,14 +70,23 @@ export function useBridge() {
       store.set(dictAtom, null)
       store.set(errorAtom, '')
       store.set(ocrPreviewAtom, null)
-      store.set(englishAtom, '')
       store.set(nativeAtom, '')
+      store.set(grammarAtom, '')
+      store.set(grammarBusyAtom, false)
       const selected = e.payload?.selected?.trim() ?? ''
       if (selected) {
+        // 英源且关中文译文：先落下英语，避免上栏空白闪一下
+        if (looksEnglish(selected) && !store.get(showNativeAtom)) {
+          store.set(textAtom, '')
+          store.set(englishAtom, selected)
+        } else {
+          store.set(englishAtom, '')
+        }
         void run({ src: selected, select: true })
         return
       }
       store.set(textAtom, '')
+      store.set(englishAtom, '')
       requestAnimationFrame(() => {
         const el = store.get(inputElAtom)
         el?.focus()
@@ -97,6 +111,13 @@ export function useBridge() {
       store.set(resultAtom, null)
       store.set(dictAtom, null)
       store.set(errorAtom, '')
+      store.set(nativeAtom, '')
+      store.set(grammarAtom, '')
+      store.set(grammarBusyAtom, false)
+      if (looksEnglish(selected) && !store.get(showNativeAtom)) {
+        store.set(textAtom, '')
+        store.set(englishAtom, selected)
+      }
       void run({ src: selected, select: true })
     }).then((f) => {
       if (!alive) {

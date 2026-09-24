@@ -27,10 +27,12 @@ export async function fitOcrPin(
     return { x, y }
   }
   const pad = 8
-  const left = mon.position.x + pad
-  const top = mon.position.y + pad
-  const right = mon.position.x + mon.size.width - pad
-  const bottom = mon.position.y + mon.size.height - pad
+  // workArea 排除 Dock / 菜单栏 / 任务栏
+  const area = mon.workArea
+  const left = area.position.x + pad
+  const top = area.position.y + pad
+  const right = area.position.x + area.size.width - pad
+  const bottom = area.position.y + area.size.height - pad
   const pw = logicalW * scale
   const ph = logicalH * scale
   const maxX = Math.max(left, right - pw)

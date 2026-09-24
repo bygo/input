@@ -7,6 +7,8 @@ import {
   dictAtom,
   diffPartsAtom,
   englishAtom,
+  grammarAtom,
+  grammarBusyAtom,
   inputElAtom,
   loadTopAtom,
   nativeAtom,
@@ -24,6 +26,8 @@ export function Native() {
   const [text, setText] = useAtom(textAtom)
   const [english, setEnglish] = useAtom(englishAtom)
   const setNative = useSetAtom(nativeAtom)
+  const setGrammar = useSetAtom(grammarAtom)
+  const setGrammarBusy = useSetAtom(grammarBusyAtom)
   const sending = useAtomValue(sendingAtom)
   const loadTop = useAtomValue(loadTopAtom)
   const diffParts = useAtomValue(diffPartsAtom)
@@ -41,7 +45,7 @@ export function Native() {
     return (
       <div className="shrink-0 overflow-y-auto px-4 py-2" style={topStyle}>
         {text.trim() && (
-          <p className="text-[15px] leading-6 break-words whitespace-pre-wrap [overflow-wrap:anywhere] select-text">
+          <p className="text-[16px] leading-6 break-words whitespace-pre-wrap [overflow-wrap:anywhere] select-text">
             {text}
           </p>
         )}
@@ -59,7 +63,7 @@ export function Native() {
       {showDiff && (
         <div
           aria-hidden
-          className="pointer-events-none absolute inset-0 overflow-hidden px-4 py-2 text-[15px] leading-6 break-words whitespace-pre-wrap [overflow-wrap:anywhere]"
+          className="pointer-events-none absolute inset-0 overflow-hidden px-4 py-2 text-[16px] leading-6 break-words whitespace-pre-wrap [overflow-wrap:anywhere]"
         >
           <EnglishText text={text} parts={diffParts} mode="del" />
         </div>
@@ -79,6 +83,8 @@ export function Native() {
           autosize(e.currentTarget)
           setEnglish('')
           setNative('')
+          setGrammar('')
+          setGrammarBusy(false)
           setResult(null)
           setDict(null)
         }}

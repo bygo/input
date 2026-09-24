@@ -40,13 +40,13 @@ export function LocalModel({ onError }: { onError: (message: string) => void }) 
   return (
     <div className="flex flex-col gap-2 border-t border-border pt-3">
       <div className="flex items-center justify-between gap-3">
-        <span className="text-sm">本地模型</span>
+        <span className="text-[16px]">本地模型</span>
         <button
           type="button"
           disabled={busy}
           aria-label="本地模型"
           className={cn(
-            'min-w-[7.5rem] rounded-lg border px-3 py-1.5 text-center text-sm',
+            'min-w-[7.5rem] rounded-lg border px-3 py-1.5 text-center text-[16px]',
             st.enabled
               ? 'border-foreground/40 bg-muted'
               : 'border-border hover:bg-muted/50',
@@ -78,7 +78,7 @@ export function LocalModel({ onError }: { onError: (message: string) => void }) 
         const active = row.id === st.model
         return (
           <div key={row.id} className="flex items-center justify-between gap-2">
-            <div className="min-w-0 text-sm">
+            <div className="min-w-0 text-[16px]">
               <span className="font-medium">{row.label}</span>
               <span className="ml-2 text-muted-foreground">{row.id}</span>
             </div>
@@ -87,7 +87,7 @@ export function LocalModel({ onError }: { onError: (message: string) => void }) 
                 <button
                   type="button"
                   disabled={busy}
-                  className="rounded-lg border border-border px-2.5 py-1 text-sm hover:bg-muted/50 disabled:opacity-50"
+                  className="rounded-lg border border-border px-2.5 py-1 text-[16px] hover:bg-muted/50 disabled:opacity-50"
                   onClick={() => {
                     onError('')
                     void pullLlmModel(row.id)
@@ -101,7 +101,7 @@ export function LocalModel({ onError }: { onError: (message: string) => void }) 
                   下载
                 </button>
               ) : active ? (
-                <span className="rounded-lg border border-foreground/40 bg-muted px-2.5 py-1 text-sm">
+                <span className="rounded-lg border border-foreground/40 bg-muted px-2.5 py-1 text-[16px]">
                   使用中
                 </span>
               ) : (
@@ -109,7 +109,7 @@ export function LocalModel({ onError }: { onError: (message: string) => void }) 
                   <button
                     type="button"
                     disabled={busy}
-                    className="rounded-lg border border-border px-2.5 py-1 text-sm hover:bg-muted/50 disabled:opacity-50"
+                    className="rounded-lg border border-border px-2.5 py-1 text-[16px] hover:bg-muted/50 disabled:opacity-50"
                     onClick={() => {
                       onError('')
                       void setLlmModel(row.id)
@@ -125,7 +125,7 @@ export function LocalModel({ onError }: { onError: (message: string) => void }) 
                   <button
                     type="button"
                     disabled={busy}
-                    className="rounded-lg border border-border px-2.5 py-1 text-sm hover:bg-muted/50 disabled:opacity-50"
+                    className="rounded-lg border border-border px-2.5 py-1 text-[16px] hover:bg-muted/50 disabled:opacity-50"
                     onClick={() => {
                       onError('')
                       void deleteLlmModel(row.id)
@@ -146,7 +146,7 @@ export function LocalModel({ onError }: { onError: (message: string) => void }) 
       })}
 
       {(busy || st.message) && (
-        <p className="text-xs text-muted-foreground">
+        <p className="text-[16px] text-muted-foreground">
           {st.message || '…'}
           {busy && ` ${st.percent}%`}
         </p>

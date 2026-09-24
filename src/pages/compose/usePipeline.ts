@@ -1,3 +1,4 @@
+import type { DictEntry } from '../../api/dict'
 import { atom, useSetAtom, useStore } from 'jotai'
 import { useEffect } from 'react'
 import { copyText, inTauri } from '@/lib/dom'
@@ -9,12 +10,15 @@ import {
   dictAtom,
   englishAtom,
   errorAtom,
+  grammarAtom,
+  grammarBusyAtom,
   inputElAtom,
   languageAtom,
   nativeAtom,
   resultAtom,
   selectSpeakAtom,
   sendingAtom,
+  showNativeAtom,
   textAtom,
   toNativeAtom,
   viewAtom,
@@ -37,41 +41,62 @@ export const composeRunAtom = atom(
     const id = ++req
     const language = get(languageAtom)
     const selectSpeak = get(selectSpeakAtom)
+    const showNative = get(showNativeAtom)
     const enSrc = looksEnglish(src)
-    set(toNativeAtom, select && enSrc)
-    set(sendingAtom, true)
+    // 关中文译文时英源划词不上栏，避免 loadTop 闪空白行
+    set(toNativeAtom, select && enSrc && showNative)
     set(errorAtom, '')
     set(resultAtom, null)
     set(dictAtom, null)
     set(nativeAtom, '')
+    set(grammarAtom, '')
+    set(grammarBusyAtom, false)
 
+    // 输入仅为一个英文单词：只出词卡，不走改写/翻译
     if (isEnglishWord(src) && inTauri()) {
+      let entry: DictEntry | null = null
       try {
-        const e = await dictLookup(src)
-        if (id !== req) {
-          return
-        }
-        if (e) {
-          set(toNativeAtom, false)
-          set(englishAtom, '')
-          set(nativeAtom, '')
-          set(textAtom, src)
-          set(dictAtom, e)
-          set(sendingAtom, false)
-          return
-        }
+        entry = await dictLookup(src)
       } catch {
-        /* fall through */
+        /* 无词条也只出卡 */
       }
+      if (id !== req) {
+        return
+      }
+      set(toNativeAtom, false)
+      set(englishAtom, '')
+      set(nativeAtom, '')
+      set(grammarAtom, '')
+      set(grammarBusyAtom, false)
+      set(textAtom, src)
+      set(dictAtom, entry ?? { word: src, senses: [] })
+      set(sendingAtom, false)
+      return
     }
 
+    // 英源划词且关中文译文：只落英语栏，不上栏、不转圈
+    if (select && enSrc && !showNative) {
+      set(textAtom, '')
+      set(englishAtom, src)
+      set(resultAtom, { sentences: [src], source: 'passthrough' })
+      set(sendingAtom, false)
+      if (selectSpeak && inTauri()) {
+        void dictSpeak(src, language).catch(() => {})
+      }
+      return
+    }
+
+    set(sendingAtom, true)
+
     try {
-      // 输入改写：一次出英语 + 中文；上栏保留原文，翻译面板落英/中
+      // 输入改写：英语；中文对照按设置
       if (!select) {
         set(textAtom, src)
         set(englishAtom, '')
         set(nativeAtom, '')
-        const r = await analyze(src, language, false, id)
+        set(grammarAtom, '')
+        set(grammarBusyAtom, false)
+        const r = await analyze(src, language, false, id, showNative)
         if (id !== req) {
           return
         }
@@ -81,14 +106,14 @@ export const composeRunAtom = atom(
           return
         }
         set(englishAtom, out)
-        set(nativeAtom, (r.native ?? '').trim())
+        set(nativeAtom, showNative ? (r.native ?? '').trim() : '')
         if (selectSpeak && inTauri() && r.source !== 'passthrough') {
           void dictSpeak(out, language).catch(() => {})
         }
         return
       }
 
-      // 划词 / OCR：翻译落栏（英源→上栏中文，其它→下栏英语）
+      // 划词 / OCR：英源→上栏中文；其它→下栏英语
       if (enSrc) {
         set(englishAtom, src)
         set(textAtom, '')
@@ -97,6 +122,8 @@ export const composeRunAtom = atom(
         set(englishAtom, '')
       }
       set(nativeAtom, '')
+      set(grammarAtom, '')
+      set(grammarBusyAtom, false)
       const r = await analyze(src, undefined, true, id)
       if (id !== req) {
         return
@@ -179,7 +206,13 @@ export function usePipeline() {
       if (e.key !== 'Enter') {
         return
       }
-      if (document.activeElement === store.get(inputElAtom)) {
+      // 主输入栏 / 词卡追问等：回车留给字段自己，不回填
+      const ae = document.activeElement
+      if (
+        ae === store.get(inputElAtom)
+        || ae instanceof HTMLInputElement
+        || ae instanceof HTMLTextAreaElement
+      ) {
         return
       }
       e.preventDefault()

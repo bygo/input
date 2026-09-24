@@ -12,7 +12,7 @@ export function Settings() {
       <Shortcuts onError={setError} />
       <LocalModel onError={setError} />
       <DictPack onError={setError} />
-      {error && <p className="text-sm text-destructive">{error}</p>}
+      {error && <p className="text-[16px] text-destructive">{error}</p>}
     </div>
   )
 }

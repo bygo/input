@@ -49,7 +49,7 @@ export function Window({
 
       const id = ++gen
       const floor = sizeFloorRef.current
-      const w = Math.max(Math.ceil(el.scrollWidth) || 0, floor?.w ?? 0) || 360
+      const w = Math.max(Math.ceil(el.scrollWidth) || 0, floor?.w ?? 0) || 540
       const h = Math.max(Math.ceil(Math.max(el.scrollHeight, el.offsetHeight)) || 0, floor?.h ?? 0)
       if (h < 8) {
         return

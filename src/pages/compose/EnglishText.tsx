@@ -12,30 +12,61 @@ function Words({
   onWord?: (word: string) => void
   hover: 'opacity' | 'foreground'
 }) {
+  const cls
+    = hover === 'opacity'
+      ? 'cursor-pointer hover:opacity-70'
+      : 'cursor-pointer hover:text-foreground/70'
+  // hover 中划线时整词一起亮
+  const compoundCls
+    = hover === 'opacity'
+      ? '[&:has([data-hyphen]:hover)>[data-bit]]:opacity-70'
+      : '[&:has([data-hyphen]:hover)>[data-bit]]:text-foreground/70'
   return (
     <>
-      {text.split(WORD_RE).map((part, i) =>
-        onWord && isEnglishWord(part)
-          ? (
-              <span
-                key={i}
-                className={
-                  hover === 'opacity'
-                    ? 'cursor-pointer hover:opacity-70'
-                    : 'cursor-pointer hover:text-foreground/70'
-                }
-                onClick={(ev) => {
-                  ev.stopPropagation()
-                  onWord(part)
-                }}
-              >
-                {part}
-              </span>
-            )
-          : (
-              <span key={i}>{part}</span>
-            ),
-      )}
+      {text.split(WORD_RE).map((part, i) => {
+        if (!onWord || !isEnglishWord(part)) {
+          return <span key={i}>{part}</span>
+        }
+        // 含中划线：点词段查词段，点 "-" 查整词（如 plague-carrying）
+        if (!part.includes('-')) {
+          return (
+            <span
+              key={i}
+              className={cls}
+              onClick={(ev) => {
+                ev.stopPropagation()
+                onWord(part)
+              }}
+            >
+              {part}
+            </span>
+          )
+        }
+        return (
+          <span key={i} className={compoundCls}>
+            {part.split(/(-)/).map((bit, j) => {
+              if (!bit) {
+                return null
+              }
+              const lookup = bit === '-' ? part : bit
+              return (
+                <span
+                  key={j}
+                  data-bit=""
+                  {...(bit === '-' ? { 'data-hyphen': '' } : {})}
+                  className={cls}
+                  onClick={(ev) => {
+                    ev.stopPropagation()
+                    onWord(lookup)
+                  }}
+                >
+                  {bit}
+                </span>
+              )
+            })}
+          </span>
+        )
+      })}
     </>
   )
 }

@@ -94,7 +94,6 @@ pub fn start(app: &AppHandle) {
     let handle = app.clone();
     let _ = app.run_on_main_thread(move || {
         let emit = handle.clone();
-        let slot_handle = handle.clone();
         let block = RcBlock::new(move |ev: NonNull<NSEvent>| -> *mut NSEvent {
             let event = unsafe { ev.as_ref() };
             if event.isARepeat() {
@@ -142,23 +141,28 @@ pub fn start(app: &AppHandle) {
             NSEvent::addLocalMonitorForEventsMatchingMask_handler(NSEventMask::KeyDown, &block)
         };
         let _ = block;
-        if let Some(slot) = slot_handle.try_state::<NativeMonitor>() {
-            if let Ok(mut g) = slot.0.lock() {
-                g.monitor = monitor;
-            }
-        }
+        let Some(slot) = handle.try_state::<NativeMonitor>() else {
+            return;
+        };
+        let Ok(mut g) = slot.0.lock() else {
+            return;
+        };
+        g.monitor = monitor;
     });
 }
 
 pub fn stop(app: &AppHandle) {
     let handle = app.clone();
     let _ = app.run_on_main_thread(move || {
-        if let Some(slot) = handle.try_state::<NativeMonitor>() {
-            if let Ok(mut g) = slot.0.lock() {
-                if let Some(m) = g.monitor.take() {
-                    unsafe { NSEvent::removeMonitor(&m) };
-                }
-            }
-        }
+        let Some(slot) = handle.try_state::<NativeMonitor>() else {
+            return;
+        };
+        let Ok(mut g) = slot.0.lock() else {
+            return;
+        };
+        let Some(m) = g.monitor.take() else {
+            return;
+        };
+        unsafe { NSEvent::removeMonitor(&m) };
     });
 }

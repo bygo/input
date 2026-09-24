@@ -5,7 +5,7 @@ import { cn } from '@/lib/utils'
 import { dictSpeak } from '../../api/dict'
 import { dictAtom, languageAtom } from '../../atoms'
 
-/** 词卡：读 dictAtom。 */
+/** 词卡：词典释义（点词 / 单词输入）。 */
 export function DictCard() {
   const entry = useAtomValue(dictAtom)
   const speakLang = useAtomValue(languageAtom)
@@ -28,9 +28,9 @@ export function DictCard() {
   return (
     <div className="px-4 py-2">
       <div className="flex items-center gap-2">
-        <span className="text-[15px] font-medium leading-6">{entry.word}</span>
+        <span className="text-[16px] font-medium leading-6">{entry.word}</span>
         {entry.phonetic && (
-          <span className="text-[13px] leading-5 text-muted-foreground">{entry.phonetic}</span>
+          <span className="text-[16px] leading-5 text-muted-foreground">{entry.phonetic}</span>
         )}
         <button
           type="button"
@@ -46,10 +46,10 @@ export function DictCard() {
           {entry.senses.map((s, i) => (
             <li
               key={`${s.pos}-${i}`}
-              className="text-[14px] leading-5 break-words [overflow-wrap:anywhere] text-foreground/90"
+              className="text-[16px] leading-5 break-words [overflow-wrap:anywhere] text-foreground/90"
             >
               {s.pos && (
-                <span className={cn('mr-1.5 text-[12px] text-muted-foreground')}>
+                <span className={cn('mr-1.5 text-[16px] text-muted-foreground')}>
                   {s.pos}
                   .
                 </span>

@@ -12,6 +12,11 @@ const PARK_X: f64 = -16384.0;
 const PARK_Y: f64 = -16384.0;
 
 #[cfg(target_os = "macos")]
+const COLLECTION_CAN_JOIN_ALL_SPACES: u64 = 1 << 0;
+#[cfg(target_os = "macos")]
+const COLLECTION_FULL_SCREEN_AUXILIARY: u64 = 1 << 8;
+
+#[cfg(target_os = "macos")]
 fn ns_window(win: &tauri::WebviewWindow) -> Option<*mut objc2::runtime::AnyObject> {
     let ns = win.ns_window().ok()?;
     if ns.is_null() {
@@ -29,6 +34,57 @@ pub fn set_alpha(win: &tauri::WebviewWindow, alpha: f64) {
             let _: () = msg_send![w, setAlphaValue: alpha];
         }
     }
+}
+
+/// 输入法候选条通常在 CGShieldingWindowLevel；我们用其 -1，盖过其它应用、不盖输入法。
+/// 绝不调用 set_always_on_top（会打回 floating）。
+#[cfg(target_os = "macos")]
+fn elevate_overlay(win: &tauri::WebviewWindow) {
+    use core_graphics::display::CGShieldingWindowLevel;
+    use objc2::msg_send;
+    if let Some(w) = ns_window(win) {
+        // NSInteger == isize；必须用 isize，否则超大 level 可能被截断成「很低」
+        let shield = unsafe { CGShieldingWindowLevel() } as isize;
+        let level = shield.saturating_sub(1);
+        unsafe {
+            let _: () = msg_send![w, setLevel: level];
+            let behavior = COLLECTION_CAN_JOIN_ALL_SPACES | COLLECTION_FULL_SCREEN_AUXILIARY;
+            let _: () = msg_send![w, setCollectionBehavior: behavior];
+            let _: () = msg_send![w, orderFrontRegardless];
+            let now: isize = msg_send![w, level];
+            eprintln!("[overlay] elevate want={level} now={now} shield={shield}");
+        }
+    }
+}
+
+#[cfg(not(target_os = "macos"))]
+fn elevate_overlay(win: &tauri::WebviewWindow) {
+    let _ = win.set_always_on_top(true);
+}
+
+/// show/focus 后 AppKit/Tauri 可能改 level，主线程延迟再钉几次。
+#[cfg(target_os = "macos")]
+fn elevate_overlay_sticky(win: &tauri::WebviewWindow) {
+    elevate_overlay(win);
+    let handle = win.app_handle().clone();
+    let label = win.label().to_string();
+    std::thread::spawn(move || {
+        for ms in [16u64, 50, 120, 300] {
+            std::thread::sleep(std::time::Duration::from_millis(ms));
+            let app = handle.clone();
+            let label = label.clone();
+            let _ = handle.run_on_main_thread(move || {
+                if let Some(w) = app.get_webview_window(&label) {
+                    elevate_overlay(&w);
+                }
+            });
+        }
+    });
+}
+
+#[cfg(not(target_os = "macos"))]
+fn elevate_overlay_sticky(win: &tauri::WebviewWindow) {
+    elevate_overlay(win);
 }
 
 #[cfg(target_os = "macos")]
@@ -62,16 +118,20 @@ pub fn appear_window(win: &tauri::WebviewWindow) {
     let _ = win.set_ignore_cursor_events(false);
     #[cfg(target_os = "macos")]
     set_alpha(win, 1.0);
+    elevate_overlay(win);
     let _ = win.show();
     let _ = win.set_focus();
+    elevate_overlay_sticky(win);
 }
 
 pub fn warmup_window(win: &tauri::WebviewWindow) {
     let _ = win.set_size(LogicalSize::new(OVERLAY_W, OVERLAY_H));
+    elevate_overlay(win);
     park_window(win);
     #[cfg(target_os = "macos")]
     {
         order_front_without_key(win);
+        elevate_overlay(win);
         park_window(win);
     }
     #[cfg(not(target_os = "macos"))]
@@ -132,12 +192,12 @@ pub fn place_window(win: &tauri::WebviewWindow, anchor: Anchor) {
         });
         let mon = mon.or(monitors.first());
         if let Some(m) = mon {
-            let p = m.position();
-            let s = m.size();
-            let left = p.x as f64 + pad;
-            let top = p.y as f64 + pad;
-            let right = p.x as f64 + s.width as f64 - pad;
-            let bottom = p.y as f64 + s.height as f64 - pad;
+            // work_area 排除 Dock / 菜单栏 / 任务栏，避免卡片被遮挡
+            let wa = m.work_area();
+            let left = wa.position.x as f64 + pad;
+            let top = wa.position.y as f64 + pad;
+            let right = wa.position.x as f64 + wa.size.width as f64 - pad;
+            let bottom = wa.position.y as f64 + wa.size.height as f64 - pad;
             if x + pw > right {
                 x = (anchor.x + anchor.w - pw).min(anchor.x);
             }

@@ -141,37 +141,48 @@ pub async fn ready() -> bool {
 }
 
 pub async fn chat(system: &str, user: &str) -> Result<String, String> {
+    chat_inner(system, user, true).await
+}
+
+/// 词卡上下文释义等：不强制 JSON schema。
+pub async fn chat_plain(system: &str, user: &str) -> Result<String, String> {
+    chat_inner(system, user, false).await
+}
+
+async fn chat_inner(system: &str, user: &str, json_schema: bool) -> Result<String, String> {
     let model = active_model();
     let client = reqwest::Client::builder()
         .timeout(Duration::from_secs(120))
         .build()
         .map_err(|e| e.to_string())?;
+    let mut body = json!({
+        "model": model,
+        "stream": false,
+        "think": false,
+        "keep_alive": KEEP_ALIVE,
+        "options": { "temperature": 0.2 },
+        "messages": [
+            {"role": "system", "content": system},
+            {"role": "user", "content": user}
+        ]
+    });
+    if json_schema {
+        body["format"] = json!({
+            "type": "object",
+            "properties": {
+                "sentences": {
+                    "type": "array",
+                    "items": { "type": "string" },
+                    "minItems": 1
+                },
+                "native": { "type": "string" }
+            },
+            "required": ["sentences"]
+        });
+    }
     let resp = client
         .post(format!("{BASE_URL}/api/chat"))
-        .json(&json!({
-            "model": model,
-            "stream": false,
-            "think": false,
-            "keep_alive": KEEP_ALIVE,
-
-            "format": {
-                "type": "object",
-                "properties": {
-                    "sentences": {
-                        "type": "array",
-                        "items": { "type": "string" },
-                        "minItems": 1
-                    },
-                    "native": { "type": "string" }
-                },
-                "required": ["sentences"]
-            },
-            "options": { "temperature": 0.2 },
-            "messages": [
-                {"role": "system", "content": system},
-                {"role": "user", "content": user}
-            ]
-        }))
+        .json(&body)
         .send()
         .await
         .map_err(|e| format!("本地模型请求失败: {e}"))?;
@@ -187,6 +198,9 @@ pub async fn chat(system: &str, user: &str) -> Result<String, String> {
         .filter(|s| !s.is_empty())
         .ok_or_else(|| format!("本地模型返回缺少 content: {text}"))?;
 
+    if !json_schema {
+        return Ok(content);
+    }
     if content == "{}" || content == "{\"sentences\":[]}" || content == "{ \"sentences\": [] }" {
         return Err(format!("本地模型返回空 JSON: {content}"));
     }
