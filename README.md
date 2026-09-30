@@ -10,7 +10,7 @@
 
 ### 功能
 
-- 在其他应用中通过全局快捷键快速呼出：macOS 默认 `Cmd+G`，从源码构建的 Windows 版本默认 `Ctrl+G`
+- 在其他应用中通过全局快捷键快速呼出：macOS 默认 `Cmd+G`
 - 润色英文表达、翻译文本、查看句子结构和重点短语
 - 使用本地 Ollama 运行时和千问 2B 模型处理 AI 请求，无需 API Key
 - 托盘菜单提供设置和退出入口
@@ -47,7 +47,7 @@ bun run tauri dev
 
 ### Features
 
-- Open the input panel from any app with a global shortcut: `Cmd+G` by default on macOS; source-built Windows versions use `Ctrl+G`
+- Open the input panel from any app with a global shortcut: `Cmd+G` by default on macOS
 - Polish English, translate text, and review sentence structure and key phrases
 - Run AI requests locally with Ollama and the Qwen 2B model; no API key is required
 - Open settings or quit from the system tray menu
