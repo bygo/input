@@ -35,7 +35,7 @@ bun run tauri dev
 目前只提供 macOS 安装包。GitHub Actions 会生成同时支持 Apple Silicon 和 Intel 的通用 `.dmg`：
 
 1. 在仓库中打开 **Actions → macOS → Run workflow** 手动触发，完成后下载 `input-macos` Artifact
-2. 推送 `v*` tag 会构建安装包并创建 Draft Release
+2. 推送 `v*` tag 会构建安装包并发布 GitHub Release
 
 安装包使用 ad-hoc 签名，没有 Apple Developer ID 证书或公证；首次打开时，macOS 可能要求在“系统设置 → 隐私与安全性”中允许打开。
 
@@ -72,6 +72,6 @@ bun run tauri dev
 Only macOS installers are currently provided. GitHub Actions builds a universal `.dmg` for Apple Silicon and Intel:
 
 1. In the repository, open **Actions → macOS → Run workflow** to start a build manually, then download the `input-macos` artifact
-2. Pushing a `v*` tag builds the installer and creates a draft release
+2. Pushing a `v*` tag builds the installer and publishes a GitHub release
 
 The installer uses ad-hoc signing and is not signed with an Apple Developer ID certificate or notarized. macOS may ask you to allow the app in **System Settings → Privacy & Security** the first time you open it.
