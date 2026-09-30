@@ -1,4 +1,4 @@
-name: Windows
+name: macOS
 
 on:
   workflow_dispatch:
@@ -11,7 +11,7 @@ permissions:
 
 jobs:
   build:
-    runs-on: windows-latest
+    runs-on: macos-latest
     steps:
       - uses: actions/checkout@v4
 
@@ -20,38 +20,42 @@ jobs:
           bun-version: latest
 
       - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: aarch64-apple-darwin,x86_64-apple-darwin
 
       - uses: swatinem/rust-cache@v2
         with:
           workspaces: src-tauri -> target
 
-      - name: Install frontend deps
+      - name: Install frontend dependencies
         run: bun install
 
-      - name: Build (no release)
+      - name: Build macOS installer
         if: ${{ !startsWith(github.ref, 'refs/tags/') }}
         uses: tauri-apps/tauri-action@v0
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          APPLE_SIGNING_IDENTITY: "-"
         with:
-          args: --bundles nsis
+          args: --target universal-apple-darwin --bundles dmg
 
-      - name: Build and draft release
+      - name: Build and draft macOS release
         if: ${{ startsWith(github.ref, 'refs/tags/') }}
         uses: tauri-apps/tauri-action@v0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          APPLE_SIGNING_IDENTITY: "-"
         with:
-          args: --bundles nsis
+          args: --target universal-apple-darwin --bundles dmg
           tagName: ${{ github.ref_name }}
           releaseName: ${{ github.ref_name }}
           releaseDraft: true
           prerelease: false
           includeUpdaterJson: false
 
-      - name: Upload Windows installer
+      - name: Upload macOS installer
+        if: ${{ !startsWith(github.ref, 'refs/tags/') }}
         uses: actions/upload-artifact@v4
         with:
-          name: input-windows
-          path: src-tauri/target/release/bundle/nsis/*.exe
+          name: input-macos
+          path: src-tauri/target/universal-apple-darwin/release/bundle/dmg/*.dmg
           if-no-files-found: error

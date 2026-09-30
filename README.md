@@ -10,7 +10,7 @@
 
 ### 功能
 
-- 在其他应用中通过全局快捷键快速呼出：macOS 默认 `Cmd+G`，Windows 默认 `Ctrl+G`
+- 在其他应用中通过全局快捷键快速呼出：macOS 默认 `Cmd+G`，从源码构建的 Windows 版本默认 `Ctrl+G`
 - 润色英文表达、翻译文本、查看句子结构和重点短语
 - 使用本地 Ollama 运行时和千问 2B 模型处理 AI 请求，无需 API Key
 - 托盘菜单提供设置和退出入口
@@ -30,15 +30,14 @@ bun install
 bun run tauri dev
 ```
 
-### Windows 打包
+### macOS 打包
 
-在 macOS 上无法直接生成 Windows 安装包，可使用 GitHub Actions：
+目前只提供 macOS 安装包。GitHub Actions 会生成同时支持 Apple Silicon 和 Intel 的通用 `.dmg`：
 
-1. 在仓库中打开 **Actions → Windows → Run workflow** 手动触发
-2. 完成后下载 `input-windows` Artifact（NSIS `.exe`）
-3. 推送 `v*` tag 也会触发构建，并创建 Draft Release
+1. 在仓库中打开 **Actions → macOS → Run workflow** 手动触发，完成后下载 `input-macos` Artifact
+2. 推送 `v*` tag 会构建安装包并创建 Draft Release
 
-CI 已启用 Rust 缓存。Windows 目前暂不支持截屏取词，其他输入和翻译功能可用。
+安装包使用 ad-hoc 签名，没有 Apple Developer ID 证书或公证；首次打开时，macOS 可能要求在“系统设置 → 隐私与安全性”中允许打开。
 
 ---
 
@@ -48,7 +47,7 @@ CI 已启用 Rust 缓存。Windows 目前暂不支持截屏取词，其他输入
 
 ### Features
 
-- Open the input panel from any app with a global shortcut: `Cmd+G` by default on macOS and `Ctrl+G` on Windows
+- Open the input panel from any app with a global shortcut: `Cmd+G` by default on macOS; source-built Windows versions use `Ctrl+G`
 - Polish English, translate text, and review sentence structure and key phrases
 - Run AI requests locally with Ollama and the Qwen 2B model; no API key is required
 - Open settings or quit from the system tray menu
@@ -68,12 +67,11 @@ bun install
 bun run tauri dev
 ```
 
-### Windows builds
+### macOS builds
 
-Windows installers can be built with GitHub Actions:
+Only macOS installers are currently provided. GitHub Actions builds a universal `.dmg` for Apple Silicon and Intel:
 
-1. In the repository, open **Actions → Windows → Run workflow** to start a build manually
-2. Download the `input-windows` artifact (an NSIS `.exe`) when the workflow completes
-3. Pushing a `v*` tag also starts a build and creates a draft release
+1. In the repository, open **Actions → macOS → Run workflow** to start a build manually, then download the `input-macos` artifact
+2. Pushing a `v*` tag builds the installer and creates a draft release
 
-Rust build caching is enabled in CI. Screen capture and text recognition are not yet available on Windows; other input and translation features work.
+The installer uses ad-hoc signing and is not signed with an Apple Developer ID certificate or notarized. macOS may ask you to allow the app in **System Settings → Privacy & Security** the first time you open it.
